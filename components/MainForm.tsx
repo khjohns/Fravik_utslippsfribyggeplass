@@ -609,6 +609,7 @@ const MainForm: React.FC = () => {
                     required
                     requiredTag
                     rows={4}
+                    fullwidth
                 />
                 <PktTextarea
                     id="consequencesOfRejection"
@@ -620,6 +621,7 @@ const MainForm: React.FC = () => {
                     required
                     requiredTag
                     rows={4}
+                    fullwidth
                 />
             </div>
         </div>
@@ -636,6 +638,7 @@ const MainForm: React.FC = () => {
                     onChange={handleAdvisorAssessmentChange}
                     placeholder="Søker skal her lime inn skriftlig vurdering mottatt fra BOI."
                     rows={6}
+                    fullwidth
                 />
 
                 <div className="relative flex items-center">
