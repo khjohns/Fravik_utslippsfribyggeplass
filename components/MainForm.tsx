@@ -1,7 +1,7 @@
 // Fix: Removed invalid CDATA wrapper from the file content.
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { PktButton } from '@oslokommune/punkt-react';
+import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox } from '@oslokommune/punkt-react';
 import type { FormData, Machine } from '../types';
 import { InputField, SelectField, TextAreaField, FileUploadField, CheckboxField, RadioGroupField, DatePickerField } from './form/Fields';
 import MachineGallery from './MachineGallery';
@@ -381,14 +381,46 @@ const MainForm: React.FC = () => {
         <div className="bg-card-bg p-8 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">1. Prosjektinformasjon</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField label="Prosjektnavn" name="projectName" value={formData.projectName} onChange={handleChange} required />
-                <InputField label="Prosjektnummer" name="projectNumber" value={formData.projectNumber} onChange={handleChange} required />
-                <InputField label="Total- / Hovedentreprenør" name="mainContractor" value={formData.mainContractor} onChange={handleChange} required />
-                <SelectField label="Kontraktsgrunnlag" name="contractBasis" value={formData.contractBasis} onChange={handleChange} required>
+                <PktTextinput
+                    id="projectName"
+                    label="Prosjektnavn"
+                    name="projectName"
+                    value={formData.projectName}
+                    onChange={handleChange}
+                    required
+                    requiredTag
+                />
+                <PktTextinput
+                    id="projectNumber"
+                    label="Prosjektnummer"
+                    name="projectNumber"
+                    value={formData.projectNumber}
+                    onChange={handleChange}
+                    required
+                    requiredTag
+                />
+                <PktTextinput
+                    id="mainContractor"
+                    label="Total- / Hovedentreprenør"
+                    name="mainContractor"
+                    value={formData.mainContractor}
+                    onChange={handleChange}
+                    required
+                    requiredTag
+                />
+                <PktSelect
+                    id="contractBasis"
+                    label="Kontraktsgrunnlag"
+                    name="contractBasis"
+                    value={formData.contractBasis}
+                    onChange={handleChange}
+                    required
+                    requiredTag
+                >
                     <option value="">Velg...</option>
                     <option value="Kontrakt inngått FØR 1. jan 2025">Kontrakt inngått FØR 1. jan 2025</option>
                     <option value="Kontrakt inngått ETTER 1. jan 2025">Kontrakt inngått ETTER 1. jan 2025</option>
-                </SelectField>
+                </PktSelect>
             </div>
         </div>
 
@@ -396,18 +428,42 @@ const MainForm: React.FC = () => {
         <div className="bg-card-bg p-8 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">2. Søknadsdetaljer</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <SelectField label="Søknad sendes inn av" name="submittedBy" value={formData.submittedBy} onChange={handleChange} required>
+                <PktSelect
+                    id="submittedBy"
+                    label="Søknad sendes inn av"
+                    name="submittedBy"
+                    value={formData.submittedBy}
+                    onChange={handleChange}
+                    required
+                    requiredTag
+                >
                     <option value="">Velg...</option>
                     <option value="Byggherrens prosjektleder">Byggherrens prosjektleder</option>
                     <option value="Totalentreprenør">Totalentreprenør</option>
-                </SelectField>
-                <InputField label="Navn på innsender" name="submitterName" value={formData.submitterName} onChange={handleChange} required />
-                <SelectField label="Hovedårsak for søknad" name="primaryDriver" value={formData.primaryDriver} onChange={handleChange} required>
+                </PktSelect>
+                <PktTextinput
+                    id="submitterName"
+                    label="Navn på innsender"
+                    name="submitterName"
+                    value={formData.submitterName}
+                    onChange={handleChange}
+                    required
+                    requiredTag
+                />
+                <PktSelect
+                    id="primaryDriver"
+                    label="Hovedårsak for søknad"
+                    name="primaryDriver"
+                    value={formData.primaryDriver}
+                    onChange={handleChange}
+                    required
+                    requiredTag
+                >
                     <option value="">Velg...</option>
                     <option value="Teknisk/Markedsmessig hindring">Teknisk/Markedsmessig hindring</option>
                     <option value="Kostnad">Kostnad</option>
                     <option value="Fremdrift">Fremdrift</option>
-                </SelectField>
+                </PktSelect>
                 <DatePickerField label="Frist for svar på søknad" name="deadline" value={formData.deadline} onChange={handleChange} required />
             </div>
             <div className="mt-6">
@@ -543,21 +599,27 @@ const MainForm: React.FC = () => {
         <div className="bg-card-bg p-8 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">4. Konsekvenser og avbøtende tiltak</h2>
             <div className="space-y-6">
-                <TextAreaField 
+                <PktTextarea
+                    id="mitigatingMeasures"
                     label="Hvilke avbøtende tiltak er vurdert eller planlagt?"
                     name="mitigatingMeasures"
                     value={formData.mitigatingMeasures}
                     onChange={handleChange}
                     placeholder="F.eks. bruk av HVO100, optimalisering av logistikk, tidsbegrenset bruk etc."
                     required
+                    requiredTag
+                    rows={4}
                 />
-                <TextAreaField 
+                <PktTextarea
+                    id="consequencesOfRejection"
                     label="Hva er konsekvensene dersom søknaden IKKE innvilges?"
                     name="consequencesOfRejection"
                     value={formData.consequencesOfRejection}
                     onChange={handleChange}
                     placeholder="Beskriv konsekvenser for fremdrift, kostnader, og teknisk gjennomførbarhet."
                     required
+                    requiredTag
+                    rows={4}
                 />
             </div>
         </div>
@@ -566,12 +628,14 @@ const MainForm: React.FC = () => {
         <div className="bg-card-bg p-8 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">5. Vurdering fra rådgiver</h2>
             <div className="space-y-6">
-                 <TextAreaField 
+                 <PktTextarea
+                    id="advisorAssessment"
                     label="Oppsummering av vurdering fra rådgiver i Bæraft og Innovasjon (BOI)"
                     name="advisorAssessment"
                     value={formData.advisorAssessment}
                     onChange={handleAdvisorAssessmentChange}
                     placeholder="Søker skal her lime inn skriftlig vurdering mottatt fra BOI."
+                    rows={6}
                 />
 
                 <div className="relative flex items-center">
