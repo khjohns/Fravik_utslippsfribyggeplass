@@ -1,9 +1,9 @@
 // Fix: Removed invalid CDATA wrapper from the file content.
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox } from '@oslokommune/punkt-react';
+import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker } from '@oslokommune/punkt-react';
 import type { FormData, Machine } from '../types';
-import { InputField, SelectField, TextAreaField, FileUploadField, CheckboxField, RadioGroupField, DatePickerField } from './form/Fields';
+import { FileUploadField } from './form/Fields';
 import MachineGallery from './MachineGallery';
 import MachineModal from './MachineModal';
 import {
@@ -464,20 +464,42 @@ const MainForm: React.FC = () => {
                     <option value="Kostnad">Kostnad</option>
                     <option value="Fremdrift">Fremdrift</option>
                 </PktSelect>
-                <DatePickerField label="Frist for svar på søknad" name="deadline" value={formData.deadline} onChange={handleChange} required />
-            </div>
-            <div className="mt-6">
-                 <RadioGroupField
-                    label="Søknaden gjelder"
-                    name="applicationType"
-                    value={formData.applicationType}
+                <PktDatepicker
+                    id="deadline"
+                    label="Frist for svar på søknad"
+                    name="deadline"
+                    value={formData.deadline}
                     onChange={handleChange}
-                    options={applicationTypeOptions}
                     required
+                    requiredTag
+                    fullwidth
                 />
             </div>
+            <div className="mt-6">
+                <label className="block text-sm font-medium text-ink-dim mb-2">
+                    Søknaden gjelder <span className="text-warn">*</span>
+                </label>
+                <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                    <PktRadioButton
+                        id="applicationType-machine"
+                        name="applicationType"
+                        value="machine"
+                        label="Spesifikk maskin / kjøretøy"
+                        checked={formData.applicationType === 'machine'}
+                        onChange={handleChange}
+                    />
+                    <PktRadioButton
+                        id="applicationType-infrastructure"
+                        name="applicationType"
+                        value="infrastructure"
+                        label="Elektrisk infrastruktur på byggeplass"
+                        checked={formData.applicationType === 'infrastructure'}
+                        onChange={handleChange}
+                    />
+                </div>
+            </div>
             <div className="mt-6 pt-6 border-t border-border-color">
-                <CheckboxField
+                <PktCheckbox
                     id="isUrgent"
                     name="isUrgent"
                     label="Akutt behov / Søknad sendes etter oppstart eller nært oppstart"
@@ -485,13 +507,17 @@ const MainForm: React.FC = () => {
                     onChange={handleChange}
                 />
                 <div className={`transition-all duration-500 ease-in-out overflow-hidden ${formData.isUrgent ? 'max-h-96 mt-4' : 'max-h-0'}`}>
-                    <TextAreaField
+                    <PktTextarea
+                        id="urgencyReason"
                         label="Begrunnelse for sen søknad"
                         name="urgencyReason"
                         value={formData.urgencyReason}
                         onChange={handleChange}
                         placeholder="Begrunn hvorfor søknad sendes uten ugrunnet opphold."
                         required={formData.isUrgent}
+                        requiredTag={formData.isUrgent}
+                        fullwidth
+                        rows={4}
                     />
                 </div>
             </div>
@@ -528,35 +554,43 @@ const MainForm: React.FC = () => {
                   {/* Section 3B */}
                   {formData.applicationType === 'infrastructure' && (
                       <div className="space-y-6">
-                          <TextAreaField 
+                          <PktTextarea
+                              id="powerAccessDescription"
                               label="Beskriv utfordringer med strømtilgang på byggeplassen"
                               name="powerAccessDescription"
                               value={formData.infrastructure.powerAccessDescription}
                               onChange={handleInfraTextChange}
                               placeholder="Beskriv kartlagt situasjon. Hvor er nærmeste tilkoblingspunkt? Hva er tilgjengelig elektrisk effekt (kW/kVA)?"
                               required
+                              requiredTag
+                              fullwidth
+                              rows={4}
                           />
-                          <TextAreaField 
+                          <PktTextarea
+                              id="infrastructureReplacement"
                               label="Beskriv erstatningsløsning"
                               name="infrastructureReplacement"
                               value={formData.infrastructure.infrastructureReplacement}
                               onChange={handleInfraTextChange}
                               placeholder="F.eks. Dieselaggregat (Euro 6) på HVO100, etc."
                               required
+                              requiredTag
+                              fullwidth
+                              rows={4}
                           />
                           <div>
                             <label className="block text-sm font-medium text-ink-dim mb-2">
                                 Alternative løsninger som er vurdert:
                             </label>
                             <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                                <CheckboxField
+                                <PktCheckbox
                                     id="mobileBatteryConsidered"
                                     name="mobileBatteryConsidered"
                                     label="Mobile batteriløsninger"
                                     checked={formData.infrastructure.mobileBatteryConsidered}
                                     onChange={handleInfraCheckboxChange}
                                 />
-                                <CheckboxField
+                                <PktCheckbox
                                     id="temporaryGridConsidered"
                                     name="temporaryGridConsidered"
                                     label="Midlertidig nett (transformatorstasjon)"
@@ -565,28 +599,39 @@ const MainForm: React.FC = () => {
                                 />
                             </div>
                           </div>
-                           <TextAreaField 
+                           <PktTextarea
+                              id="alternativeMethods"
                               label="Vurderte alternative løsninger (utover batteri/nett)"
                               name="alternativeMethods"
                               value={formData.infrastructure.alternativeMethods}
                               onChange={handleInfraTextChange}
                               placeholder="F.eks. endret arbeidsmetode, bruk av mindre maskiner som ikke krever like mye effekt, etc."
+                              fullwidth
+                              rows={4}
                           />
-                          <TextAreaField 
+                          <PktTextarea
+                              id="projectSpecificConditions"
                               label="Beskriv prosjektspesifikke forhold som påvirker"
                               name="projectSpecificConditions"
                               value={formData.infrastructure.projectSpecificConditions}
                               onChange={handleInfraTextChange}
                               placeholder="F.eks. plassmangel, HMS, støy etc."
                               required
+                              requiredTag
+                              fullwidth
+                              rows={4}
                           />
-                          <TextAreaField 
+                          <PktTextarea
+                              id="costAssessment"
                               label="Vurdering av kostnader for alternative løsninger"
                               name="costAssessment"
                               value={formData.infrastructure.costAssessment}
                               onChange={handleInfraTextChange}
                               placeholder="Vær konkret. Er merkostnaden for utslippsfri drift >10% av prosjektkostnaden?"
                               required
+                              requiredTag
+                              fullwidth
+                              rows={4}
                           />
                       </div>
                   )}
