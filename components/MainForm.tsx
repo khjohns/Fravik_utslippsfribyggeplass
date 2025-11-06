@@ -1,6 +1,7 @@
 // Fix: Removed invalid CDATA wrapper from the file content.
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { PktButton } from '@oslokommune/punkt-react';
 import type { FormData, Machine } from '../types';
 import { InputField, SelectField, TextAreaField, FileUploadField, CheckboxField, RadioGroupField, DatePickerField } from './form/Fields';
 import MachineGallery from './MachineGallery';
@@ -352,12 +353,15 @@ const MainForm: React.FC = () => {
             <pre className="text-red-700 text-sm whitespace-pre-wrap">
               {submissionState.error}
             </pre>
-            <button
+            <PktButton
               onClick={() => setSubmissionState({ status: 'idle' })}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              skin="primary"
+              color="red"
+              size="medium"
+              className="mt-4"
             >
               Prøv igjen
-            </button>
+            </PktButton>
           </div>
         );
     }
@@ -453,9 +457,14 @@ const MainForm: React.FC = () => {
                       </p>
                       <MachineGallery machines={formData.machines} onEdit={handleOpenMachineModal} onDelete={handleDeleteMachine} />
                       <div className="text-left">
-                          <button type="button" onClick={() => handleOpenMachineModal()} className="bg-pri-light border border-pri text-pri font-bold py-2 px-4 rounded-lg hover:bg-pri hover:text-white transition duration-300">
+                          <PktButton
+                            type="button"
+                            onClick={() => handleOpenMachineModal()}
+                            skin="secondary"
+                            size="medium"
+                          >
                               + Legg til maskin
-                          </button>
+                          </PktButton>
                       </div>
                     </div>
                   )}
@@ -587,27 +596,31 @@ const MainForm: React.FC = () => {
         {/* Submission */}
         <div className="text-center space-y-4 pt-4">
              <div className="flex justify-center items-center gap-4">
-                <button
+                <PktButton
                     type="button"
                     onClick={handleFillWithExample}
-                    className="bg-gray-200 text-ink font-bold py-3 px-8 rounded-lg hover:bg-gray-300 transition duration-300"
+                    skin="secondary"
+                    size="large"
                 >
                     Fyll med eksempeldata
-                </button>
-                 <button
+                </PktButton>
+                 <PktButton
                     type="button"
                     onClick={handleReset}
-                    className="bg-white text-ink font-bold py-3 px-8 rounded-lg border border-muted hover:bg-gray-100 hover:border-ink transition duration-300"
+                    skin="tertiary"
+                    size="large"
                 >
                     Nullstill
-                </button>
-                <button
+                </PktButton>
+                <PktButton
                     type="submit"
                     disabled={submissionState.status === 'submitting' || submissionState.status === 'validating'}
-                    className="bg-pri text-white font-bold py-3 px-8 rounded-lg hover:bg-pri-600 transition duration-300 disabled:bg-muted disabled:cursor-not-allowed"
+                    skin="primary"
+                    size="large"
+                    isLoading={submissionState.status === 'submitting' || submissionState.status === 'validating'}
                 >
                     {submissionState.status === 'submitting' ? 'Sender...' : submissionState.status === 'validating' ? 'Validerer...' : 'Send inn søknad'}
-                </button>
+                </PktButton>
             </div>
         </div>
 
