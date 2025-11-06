@@ -1,0 +1,5 @@
+{
+  "name": "Construction Exemption Application Form",
+  "description": "A digital form for applying for exemptions from environmental requirements on construction sites. The form dynamically adjusts based on whether the application is for a specific machine/vehicle or due to inadequate electrical infrastructure.",
+  "requestFramePermissions": []
+}
