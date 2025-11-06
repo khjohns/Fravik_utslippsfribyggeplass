@@ -112,7 +112,7 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
           <button onClick={onClose} className="text-muted hover:text-ink text-3xl font-bold">&times;</button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <PktSelect
                 id="type"
                 label="Type maskin/kjøretøy"
@@ -120,7 +120,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                 value={machineData.type}
                 onChange={handleChange}
                 required
-                requiredTag
             >
                 <option value="">Velg type...</option>
                 <option value="Gravemaskin">Gravemaskin</option>
@@ -136,7 +135,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                     value={machineData.otherType || ''}
                     onChange={handleChange}
                     required
-                    requiredTag
                 />
             )}
             <PktDatepicker
@@ -146,7 +144,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                 value={machineData.startDate}
                 onChange={handleChange}
                 required
-                requiredTag
                 fullwidth
             />
             <PktDatepicker
@@ -156,7 +153,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                 value={machineData.endDate}
                 onChange={handleChange}
                 required
-                requiredTag
                 fullwidth
             />
           </div>
@@ -186,7 +182,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
             onChange={handleChange}
             placeholder="Utdyp hvorfor fravik er nødvendig. Beskriv tekniske begrensninger, markedssituasjon, etc."
             required
-            requiredTag
             fullwidth
             rows={4}
           />
@@ -208,7 +203,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                     onChange={handleChange}
                     placeholder="F.eks. Pon Equipment AS, Volvo Maskin AS, etc."
                     required={machineData.marketSurveyConfirmed}
-                    requiredTag={machineData.marketSurveyConfirmed}
                     fullwidth
                     rows={4}
                 />
@@ -224,7 +218,7 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
 
           <h3 className="text-lg font-semibold text-pri border-t border-border-color pt-6 mt-6">Erstatningsmaskin</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <PktTextinput
                 id="replacementMachine"
                 label="Hvilken maskin/kjøretøy skal benyttes i stedet?"
@@ -233,7 +227,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                 onChange={handleChange}
                 placeholder="Merke, modell, Euro-klasse, etc."
                 required
-                requiredTag
             />
              <PktSelect
                 id="replacementFuel"
@@ -242,7 +235,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                 value={machineData.replacementFuel}
                 onChange={handleChange}
                 required
-                requiredTag
              >
                 <option value="">Velg drivstoff...</option>
                 <option value="HVO100">HVO100</option>
@@ -259,7 +251,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
             onChange={handleChange}
             placeholder="Beskriv hva maskinen/kjøretøyet skal brukes til."
             required
-            requiredTag
             fullwidth
             rows={4}
           />
@@ -272,7 +263,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
             onChange={handleChange}
             placeholder="Hvilke andre løsninger er vurdert (f.eks. bruk av mindre maskiner, batteribanker, endret metode)? Hvorfor er de ikke valgt?"
             required
-            requiredTag
             fullwidth
             rows={4}
           />
