@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FormEvent } from 'react';
+import { PktButton } from '@oslokommune/punkt-react';
 import type { Machine } from '../types';
 import { InputField, SelectField, TextAreaField, FileUploadField, CheckboxField, DatePickerField } from './form/Fields';
 
@@ -217,12 +218,12 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
           />
 
           <div className="flex justify-end space-x-4 pt-6 mt-6 border-t border-border-color">
-            <button type="button" onClick={onClose} className="px-6 py-2 border border-border-color rounded-md text-ink hover:bg-body-bg">
+            <PktButton type="button" onClick={onClose} skin="tertiary" size="medium">
               Avbryt
-            </button>
-            <button type="submit" className="px-6 py-2 bg-pri text-white font-bold rounded-md hover:bg-pri-600">
+            </PktButton>
+            <PktButton type="submit" skin="primary" size="medium">
               Lagre maskin
-            </button>
+            </PktButton>
           </div>
         </form>
       </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { PktButton } from '@oslokommune/punkt-react';
 
 interface StartScreenProps {
   onStart: () => void;
@@ -38,12 +39,14 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
       </p>
       
       <div className="text-center mt-8">
-        <button
+        <PktButton
           onClick={onStart}
-          className="bg-pri text-white font-bold py-3 px-8 rounded-lg hover:bg-pri-600 transition duration-300 ease-in-out shadow-md text-lg"
+          skin="primary"
+          size="large"
+          type="button"
         >
           Start ny søknad
-        </button>
+        </PktButton>
       </div>
     </div>
   );
