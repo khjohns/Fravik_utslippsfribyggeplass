@@ -5,7 +5,21 @@ import type { FormData, Machine } from '../types';
 import { InputField, SelectField, TextAreaField, FileUploadField, CheckboxField, RadioGroupField, DatePickerField } from './form/Fields';
 import MachineGallery from './MachineGallery';
 import MachineModal from './MachineModal';
-import SubmissionModal from './SubmissionModal';
+import {
+  submitApplicationWithRetry,
+  validateBeforeSubmit,
+  APIError
+} from '../services/api.service';
+
+/**
+ * Submission states
+ */
+type SubmissionState =
+  | { status: 'idle' }
+  | { status: 'validating' }
+  | { status: 'submitting'; progress: number }
+  | { status: 'success'; applicationId: number }
+  | { status: 'error'; error: string };
 
 const exampleMachine: Machine = {
   id: uuidv4(),
@@ -84,12 +98,20 @@ const initialFormData: FormData = {
 const MainForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
-  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [editingMachineId, setEditingMachineId] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [advisorAttachmentName, setAdvisorAttachmentName] = useState<string | null>(null);
   const [advisorValidationError, setAdvisorValidationError] = useState<string | null>(null);
+
+  // File state
+  const [files, setFiles] = useState<{
+    advisorAttachment?: File;
+    documentation?: File[];
+  }>({});
+
+  // Submission state
+  const [submissionState, setSubmissionState] = useState<SubmissionState>({
+    status: 'idle',
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string; value: string }}) => {
     const { name, value } = e.target;
@@ -125,10 +147,24 @@ const MainForm: React.FC = () => {
     }));
   };
 
+  /**
+   * Handle file input change
+   */
+  const handleFileChange = (
+    fieldName: 'advisorAttachment' | 'documentation',
+    file: File | File[]
+  ) => {
+    setFiles(prev => ({
+      ...prev,
+      [fieldName]: file,
+    }));
+  };
+
   const handleAdvisorAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setFormData(prev => ({ ...prev, advisorAttachment: file }));
+      handleFileChange('advisorAttachment', file);
       setAdvisorAttachmentName(file.name);
       setAdvisorValidationError(null);
     }
@@ -151,8 +187,9 @@ const MainForm: React.FC = () => {
   const handleReset = () => {
     if (window.confirm('Er du sikker på at du vil nullstille hele skjemaet? All data vil bli slettet.')) {
       setFormData(initialFormData);
+      setFiles({});
       setAdvisorAttachmentName(null);
-      setSubmissionStatus('idle');
+      setSubmissionState({ status: 'idle' });
       setAdvisorValidationError(null);
     }
   };
@@ -191,27 +228,140 @@ const MainForm: React.FC = () => {
     }
   };
   
-  const handleInitiateSubmit = (e: React.FormEvent) => {
+  /**
+   * Handle form submission
+   */
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.advisorAssessment.trim() && !formData.advisorAttachment) {
-        setAdvisorValidationError('Du må enten lime inn vurderingen eller laste opp vedlegget.');
-        return;
+
+    // 1. Validation
+    setSubmissionState({ status: 'validating' });
+
+    const validation = validateBeforeSubmit(formData, files);
+
+    if (!validation.valid) {
+      setSubmissionState({
+        status: 'error',
+        error: validation.errors.join('\n'),
+      });
+      return;
     }
-    setAdvisorValidationError(null);
-    setIsSubmissionModalOpen(true);
+
+    // 2. Submit with retry logic
+    setSubmissionState({ status: 'submitting', progress: 0 });
+
+    try {
+      // Simulate progress updates (optional - for UX)
+      const progressInterval = setInterval(() => {
+        setSubmissionState(prev =>
+          prev.status === 'submitting'
+            ? { ...prev, progress: Math.min(prev.progress + 10, 90) }
+            : prev
+        );
+      }, 500);
+
+      // Submit application
+      const response = await submitApplicationWithRetry(
+        formData,
+        files,
+        3, // Max 3 retries
+        1000 // 1 second delay
+      );
+
+      clearInterval(progressInterval);
+
+      // Success!
+      setSubmissionState({
+        status: 'success',
+        applicationId: response.id,
+      });
+
+      console.log('✅ Application submitted:', response);
+
+      // Optional: Reset form
+      // setFormData(initialFormData);
+      // setFiles({});
+
+    } catch (error) {
+      const apiError = error as APIError;
+
+      console.error('❌ Submission failed:', apiError);
+
+      setSubmissionState({
+        status: 'error',
+        error: apiError.message + (apiError.details ? `\n\n${apiError.details}` : ''),
+      });
+
+      // Log to analytics/monitoring (optional)
+      // trackError('submission_failed', apiError);
+    }
   };
 
-  const handleConfirmSubmit = () => {
-     setIsSubmitting(true);
-     setSubmissionStatus('idle');
-     console.log("Søknadsdata sendes:", formData);
-     // Simulate API call
-    setTimeout(() => {
-        setIsSubmitting(false);
-        setSubmissionStatus('success');
-        setIsSubmissionModalOpen(false);
-    }, 2000);
-  }
+  /**
+   * Render submission state UI
+   */
+  const renderSubmissionState = () => {
+    switch (submissionState.status) {
+      case 'idle':
+        return null;
+
+      case 'validating':
+        return (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-blue-800">Validerer skjemadata...</p>
+          </div>
+        );
+
+      case 'submitting':
+        return (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-blue-800 mb-2">Sender inn søknad...</p>
+            <div className="w-full bg-blue-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${submissionState.progress}%` }}
+              />
+            </div>
+            <p className="text-sm text-blue-600 mt-2">
+              Vennligst ikke lukk dette vinduet
+            </p>
+          </div>
+        );
+
+      case 'success':
+        return (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h3 className="text-green-800 font-semibold mb-2">
+              ✅ Søknad sendt inn!
+            </h3>
+            <p className="text-green-700">
+              Søknads-ID: <strong>{submissionState.applicationId}</strong>
+            </p>
+            <p className="text-green-600 text-sm mt-2">
+              Du vil motta en bekreftelse på e-post snart.
+            </p>
+          </div>
+        );
+
+      case 'error':
+        return (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h3 className="text-red-800 font-semibold mb-2">
+              ❌ Innsending feilet
+            </h3>
+            <pre className="text-red-700 text-sm whitespace-pre-wrap">
+              {submissionState.error}
+            </pre>
+            <button
+              onClick={() => setSubmissionState({ status: 'idle' })}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Prøv igjen
+            </button>
+          </div>
+        );
+    }
+  };
 
   const editingMachine = editingMachineId ? formData.machines.find(m => m.id === editingMachineId) : null;
 
@@ -222,7 +372,7 @@ const MainForm: React.FC = () => {
 
   return (
     <>
-      <form onSubmit={handleInitiateSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1 */}
         <div className="bg-card-bg p-8 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">1. Prosjektinformasjon</h2>
@@ -431,6 +581,9 @@ const MainForm: React.FC = () => {
             </div>
         </div>
         
+        {/* Submission State */}
+        {renderSubmissionState()}
+
         {/* Submission */}
         <div className="text-center space-y-4 pt-4">
              <div className="flex justify-center items-center gap-4">
@@ -450,28 +603,20 @@ const MainForm: React.FC = () => {
                 </button>
                 <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={submissionState.status === 'submitting' || submissionState.status === 'validating'}
                     className="bg-pri text-white font-bold py-3 px-8 rounded-lg hover:bg-pri-600 transition duration-300 disabled:bg-muted disabled:cursor-not-allowed"
                 >
-                    {isSubmitting ? 'Sender...' : 'Send inn søknad'}
+                    {submissionState.status === 'submitting' ? 'Sender...' : submissionState.status === 'validating' ? 'Validerer...' : 'Send inn søknad'}
                 </button>
             </div>
-            {submissionStatus === 'success' && <p className="text-green-600">Søknaden er sendt inn!</p>}
-            {submissionStatus === 'error' && <p className="text-warn">Noe gikk galt. Prøv igjen.</p>}
         </div>
 
       </form>
-      <MachineModal 
-        isOpen={isMachineModalOpen} 
-        onClose={handleCloseMachineModal} 
+      <MachineModal
+        isOpen={isMachineModalOpen}
+        onClose={handleCloseMachineModal}
         onSave={handleSaveMachine}
         machineToEdit={editingMachine || null}
-      />
-      <SubmissionModal
-        isOpen={isSubmissionModalOpen}
-        onClose={() => setIsSubmissionModalOpen(false)}
-        onConfirm={handleConfirmSubmit}
-        isSubmitting={isSubmitting}
       />
     </>
   );
