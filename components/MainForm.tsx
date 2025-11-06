@@ -380,7 +380,7 @@ const MainForm: React.FC = () => {
         {/* Section 1 */}
         <div className="bg-card-bg p-8 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">1. Prosjektinformasjon</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <PktTextinput
                     id="projectName"
                     label="Prosjektnavn"
@@ -388,7 +388,6 @@ const MainForm: React.FC = () => {
                     value={formData.projectName}
                     onChange={handleChange}
                     required
-                    requiredTag
                 />
                 <PktTextinput
                     id="projectNumber"
@@ -397,7 +396,6 @@ const MainForm: React.FC = () => {
                     value={formData.projectNumber}
                     onChange={handleChange}
                     required
-                    requiredTag
                 />
                 <PktTextinput
                     id="mainContractor"
@@ -406,7 +404,6 @@ const MainForm: React.FC = () => {
                     value={formData.mainContractor}
                     onChange={handleChange}
                     required
-                    requiredTag
                 />
                 <PktSelect
                     id="contractBasis"
@@ -415,7 +412,6 @@ const MainForm: React.FC = () => {
                     value={formData.contractBasis}
                     onChange={handleChange}
                     required
-                    requiredTag
                 >
                     <option value="">Velg...</option>
                     <option value="Kontrakt inngått FØR 1. jan 2025">Kontrakt inngått FØR 1. jan 2025</option>
@@ -427,7 +423,7 @@ const MainForm: React.FC = () => {
         {/* Section 2 */}
         <div className="bg-card-bg p-8 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">2. Søknadsdetaljer</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <PktSelect
                     id="submittedBy"
                     label="Søknad sendes inn av"
@@ -435,7 +431,6 @@ const MainForm: React.FC = () => {
                     value={formData.submittedBy}
                     onChange={handleChange}
                     required
-                    requiredTag
                 >
                     <option value="">Velg...</option>
                     <option value="Byggherrens prosjektleder">Byggherrens prosjektleder</option>
@@ -448,7 +443,6 @@ const MainForm: React.FC = () => {
                     value={formData.submitterName}
                     onChange={handleChange}
                     required
-                    requiredTag
                 />
                 <PktSelect
                     id="primaryDriver"
@@ -457,7 +451,6 @@ const MainForm: React.FC = () => {
                     value={formData.primaryDriver}
                     onChange={handleChange}
                     required
-                    requiredTag
                 >
                     <option value="">Velg...</option>
                     <option value="Teknisk/Markedsmessig hindring">Teknisk/Markedsmessig hindring</option>
@@ -471,7 +464,6 @@ const MainForm: React.FC = () => {
                     value={formData.deadline}
                     onChange={handleChange}
                     required
-                    requiredTag
                     fullwidth
                 />
             </div>
@@ -515,7 +507,7 @@ const MainForm: React.FC = () => {
                         onChange={handleChange}
                         placeholder="Begrunn hvorfor søknad sendes uten ugrunnet opphold."
                         required={formData.isUrgent}
-                        requiredTag={formData.isUrgent}
+                        required={formData.isUrgent}
                         fullwidth
                         rows={4}
                     />
@@ -562,7 +554,6 @@ const MainForm: React.FC = () => {
                               onChange={handleInfraTextChange}
                               placeholder="Beskriv kartlagt situasjon. Hvor er nærmeste tilkoblingspunkt? Hva er tilgjengelig elektrisk effekt (kW/kVA)?"
                               required
-                              requiredTag
                               fullwidth
                               rows={4}
                           />
@@ -574,7 +565,6 @@ const MainForm: React.FC = () => {
                               onChange={handleInfraTextChange}
                               placeholder="F.eks. Dieselaggregat (Euro 6) på HVO100, etc."
                               required
-                              requiredTag
                               fullwidth
                               rows={4}
                           />
@@ -617,7 +607,6 @@ const MainForm: React.FC = () => {
                               onChange={handleInfraTextChange}
                               placeholder="F.eks. plassmangel, HMS, støy etc."
                               required
-                              requiredTag
                               fullwidth
                               rows={4}
                           />
@@ -629,7 +618,6 @@ const MainForm: React.FC = () => {
                               onChange={handleInfraTextChange}
                               placeholder="Vær konkret. Er merkostnaden for utslippsfri drift >10% av prosjektkostnaden?"
                               required
-                              requiredTag
                               fullwidth
                               rows={4}
                           />
@@ -652,7 +640,6 @@ const MainForm: React.FC = () => {
                     onChange={handleChange}
                     placeholder="F.eks. bruk av HVO100, optimalisering av logistikk, tidsbegrenset bruk etc."
                     required
-                    requiredTag
                     rows={4}
                     fullwidth
                 />
@@ -664,7 +651,6 @@ const MainForm: React.FC = () => {
                     onChange={handleChange}
                     placeholder="Beskriv konsekvenser for fremdrift, kostnader, og teknisk gjennomførbarhet."
                     required
-                    requiredTag
                     rows={4}
                     fullwidth
                 />
