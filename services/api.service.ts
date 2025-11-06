@@ -12,6 +12,38 @@ import { FormData as AppFormData } from '../types';
  */
 const API_BASE_URL = '/api'; // SWA serves Functions under /api
 
+// MIDLERTIDIG DUMMY-KODE FOR TESTING
+const MOCK_API = true; // Sett til false for å prøve ekte API
+
+async function mockSubmit(payload: FormData): Promise<SubmitResponse> {
+  console.log("MOCK SUBMIT:", payload);
+
+  // Simuler en forsinkelse
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  // Simuler suksess
+  return {
+    success: true,
+    id: 12345,
+    status: 'submitted',
+    message: 'Søknad (MOCK) sendt inn!',
+    idempotencyKey: 'mock-key-123',
+    submittedBy: 'test@bruker.no',
+    submittedAt: new Date().toISOString(),
+  };
+
+  /*
+  // Simuler en feil
+  throw new APIError(
+    'Dette er en dummy-feilmelding.',
+    500,
+    'MockError',
+    'Mer detaljer om feilen her.'
+  );
+  */
+}
+// SLUTT PÅ DUMMY-KODE
+
 /**
  * API Response Types
  */
@@ -125,7 +157,14 @@ export async function submitApplication(
     documentation?: File[];
   }
 ): Promise<SubmitResponse> {
-  
+
+  // MIDLERTIDIG DUMMY-KODE FOR TESTING
+  if (MOCK_API) {
+    const payload = buildMultipartPayload(formData, files);
+    return mockSubmit(payload);
+  }
+  // SLUTT PÅ DUMMY-KODE
+
   try {
     // Build multipart payload
     const payload = buildMultipartPayload(formData, files);
