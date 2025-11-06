@@ -1,7 +1,7 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { PktButton } from '@oslokommune/punkt-react';
+import { PktButton, PktTextinput, PktSelect, PktTextarea, PktCheckbox, PktDatepicker } from '@oslokommune/punkt-react';
 import type { Machine } from '../types';
-import { InputField, SelectField, TextAreaField, FileUploadField, CheckboxField, DatePickerField } from './form/Fields';
+import { FileUploadField } from './form/Fields';
 
 interface MachineModalProps {
   isOpen: boolean;
@@ -113,18 +113,52 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SelectField label="Type maskin/kjøretøy" name="type" value={machineData.type} onChange={handleChange} required>
+            <PktSelect
+                id="type"
+                label="Type maskin/kjøretøy"
+                name="type"
+                value={machineData.type}
+                onChange={handleChange}
+                required
+                requiredTag
+            >
                 <option value="">Velg type...</option>
                 <option value="Gravemaskin">Gravemaskin</option>
                 <option value="Hjullaster">Hjullaster</option>
                 <option value="Lift">Lift</option>
                 <option value="Annet">Annet</option>
-            </SelectField>
+            </PktSelect>
             {machineData.type === 'Annet' && (
-                <InputField label="Spesifiser annen type" name="otherType" value={machineData.otherType || ''} onChange={handleChange} required />
+                <PktTextinput
+                    id="otherType"
+                    label="Spesifiser annen type"
+                    name="otherType"
+                    value={machineData.otherType || ''}
+                    onChange={handleChange}
+                    required
+                    requiredTag
+                />
             )}
-            <DatePickerField label="Startdato for bruk" name="startDate" value={machineData.startDate} onChange={handleChange} required />
-            <DatePickerField label="Sluttdato for bruk" name="endDate" value={machineData.endDate} onChange={handleChange} required />
+            <PktDatepicker
+                id="startDate"
+                label="Startdato for bruk"
+                name="startDate"
+                value={machineData.startDate}
+                onChange={handleChange}
+                required
+                requiredTag
+                fullwidth
+            />
+            <PktDatepicker
+                id="endDate"
+                label="Sluttdato for bruk"
+                name="endDate"
+                value={machineData.endDate}
+                onChange={handleChange}
+                required
+                requiredTag
+                fullwidth
+            />
           </div>
 
           <div>
@@ -132,7 +166,7 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
             {reasonError && <p className="text-sm text-warn -mt-1 mb-2">{reasonError}</p>}
             <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-3">
               {reasonOptions.map(reason => (
-                <CheckboxField
+                <PktCheckbox
                   key={reason}
                   id={`reason-${reason}`}
                   label={reason}
@@ -144,17 +178,21 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
             </div>
           </div>
           
-          <TextAreaField 
+          <PktTextarea
+            id="detailedReasoning"
             label="Detaljert begrunnelse"
             name="detailedReasoning"
             value={machineData.detailedReasoning}
             onChange={handleChange}
             placeholder="Utdyp hvorfor fravik er nødvendig. Beskriv tekniske begrensninger, markedssituasjon, etc."
             required
+            requiredTag
+            fullwidth
+            rows={4}
           />
 
           <div className="bg-body-bg p-4 rounded-md border border-border-color space-y-4">
-            <CheckboxField
+            <PktCheckbox
               id="marketSurveyConfirmed"
               name="marketSurveyConfirmed"
               label="Markedsundersøkelse er gjennomført for å finne utslippsfrie alternativer"
@@ -162,13 +200,17 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
               onChange={handleCheckboxChange}
             />
             <div className={`transition-all duration-300 ease-in-out overflow-hidden ${machineData.marketSurveyConfirmed ? 'max-h-96' : 'max-h-0'}`}>
-                <TextAreaField 
+                <PktTextarea
+                    id="surveyedCompanies"
                     label="Hvilke selskaper er forespurt?"
                     name="surveyedCompanies"
                     value={machineData.surveyedCompanies}
                     onChange={handleChange}
                     placeholder="F.eks. Pon Equipment AS, Volvo Maskin AS, etc."
                     required={machineData.marketSurveyConfirmed}
+                    requiredTag={machineData.marketSurveyConfirmed}
+                    fullwidth
+                    rows={4}
                 />
             </div>
           </div>
@@ -183,38 +225,56 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
           <h3 className="text-lg font-semibold text-pri border-t border-border-color pt-6 mt-6">Erstatningsmaskin</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField 
+            <PktTextinput
+                id="replacementMachine"
                 label="Hvilken maskin/kjøretøy skal benyttes i stedet?"
                 name="replacementMachine"
                 value={machineData.replacementMachine}
                 onChange={handleChange}
                 placeholder="Merke, modell, Euro-klasse, etc."
                 required
+                requiredTag
             />
-             <SelectField label="Drivstoff for erstatningsmaskin" name="replacementFuel" value={machineData.replacementFuel} onChange={handleChange} required>
+             <PktSelect
+                id="replacementFuel"
+                label="Drivstoff for erstatningsmaskin"
+                name="replacementFuel"
+                value={machineData.replacementFuel}
+                onChange={handleChange}
+                required
+                requiredTag
+             >
                 <option value="">Velg drivstoff...</option>
                 <option value="HVO100">HVO100</option>
                 <option value="Annet biodrivstoff">Annet biodrivstoff</option>
                 <option value="Diesel (Euro 6)">Diesel (Euro 6)</option>
-            </SelectField>
+            </PktSelect>
           </div>
           
-           <TextAreaField 
+           <PktTextarea
+            id="workDescription"
             label="Beskrivelse av arbeidsoppgaver"
             name="workDescription"
             value={machineData.workDescription}
             onChange={handleChange}
             placeholder="Beskriv hva maskinen/kjøretøyet skal brukes til."
             required
+            requiredTag
+            fullwidth
+            rows={4}
           />
 
-          <TextAreaField 
+          <PktTextarea
+            id="alternativeSolutions"
             label="Vurdering av alternative løsninger"
             name="alternativeSolutions"
             value={machineData.alternativeSolutions}
             onChange={handleChange}
             placeholder="Hvilke andre løsninger er vurdert (f.eks. bruk av mindre maskiner, batteribanker, endret metode)? Hvorfor er de ikke valgt?"
             required
+            requiredTag
+            fullwidth
+            rows={4}
           />
 
           <div className="flex justify-end space-x-4 pt-6 mt-6 border-t border-border-color">
