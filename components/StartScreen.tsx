@@ -42,7 +42,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         <PktButton
           onClick={onStart}
           skin="primary"
-          size="large"
+          size="medium"
           type="button"
         >
           Start ny søknad

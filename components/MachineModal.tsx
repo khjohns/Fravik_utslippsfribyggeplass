@@ -112,7 +112,7 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
           <button onClick={onClose} className="text-muted hover:text-ink text-3xl font-bold">&times;</button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
             <PktSelect
                 id="type"
                 label="Type maskin/kjøretøy"
@@ -217,8 +217,8 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
           />
 
           <h3 className="text-lg font-semibold text-pri border-t border-border-color pt-6 mt-6">Erstatningsmaskin</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
             <PktTextinput
                 id="replacementMachine"
                 label="Hvilken maskin/kjøretøy skal benyttes i stedet?"
