@@ -16,7 +16,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
       </p>
 
       <div className="bg-pri-light p-6 rounded-lg border border-border-color text-left">
-        <h3 className="text-xl font-semibold text-ink mb-3">Før du starter:</h3>
+        <h2 className="text-xl font-semibold text-ink mb-3">Før du starter:</h2>
         <p className="text-ink-dim mb-4">
           For å sikre en effektiv behandling av søknaden, vennligst sørg for at du har:
         </p>
