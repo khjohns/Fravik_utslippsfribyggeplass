@@ -1,7 +1,7 @@
 // Fix: Removed invalid CDATA wrapper from the file content.
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker } from '@oslokommune/punkt-react';
+import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker, PktStepper, PktStep } from '@oslokommune/punkt-react';
 import type { FormData, Machine } from '../types';
 import { FileUploadField } from './form/Fields';
 import MachineGallery from './MachineGallery';
@@ -374,11 +374,89 @@ const MainForm: React.FC = () => {
       { value: 'infrastructure', label: 'Elektrisk infrastruktur på byggeplass' }
   ];
 
+  // Scroll to section when step is clicked
+  const scrollToSection = (stepNumber: string) => {
+    setActiveStep(stepNumber);
+    const refs = {
+      '1': section1Ref,
+      '2': section2Ref,
+      '3': section3Ref,
+      '4': section4Ref,
+      '5': section5Ref
+    };
+    const targetRef = refs[stepNumber as keyof typeof refs];
+    if (targetRef?.current) {
+      targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Calculate step status
+  const getStepStatus = (stepNumber: string): 'completed' | 'current' | 'incomplete' => {
+    if (stepNumber === activeStep) return 'current';
+
+    const stepNum = parseInt(stepNumber);
+    const activeNum = parseInt(activeStep);
+
+    // Basic completion logic - can be enhanced
+    if (stepNum < activeNum) {
+      switch (stepNumber) {
+        case '1':
+          return formData.projectName && formData.projectNumber ? 'completed' : 'incomplete';
+        case '2':
+          return formData.submittedBy && formData.submitterName ? 'completed' : 'incomplete';
+        case '3':
+          return formData.applicationType ? 'completed' : 'incomplete';
+        case '4':
+          return formData.mitigatingMeasures ? 'completed' : 'incomplete';
+        default:
+          return 'incomplete';
+      }
+    }
+
+    return 'incomplete';
+  };
+
   return (
     <>
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Stepper Sidebar - Hidden on mobile, visible on large screens */}
+        <aside className="hidden lg:block lg:w-64 flex-shrink-0">
+          <div className="sticky top-28">
+            <PktStepper activeStep={activeStep} orientation="vertical">
+              <PktStep
+                title="Prosjektinformasjon"
+                status={getStepStatus('1')}
+                onClick={() => scrollToSection('1')}
+              />
+              <PktStep
+                title="Søknadsdetaljer"
+                status={getStepStatus('2')}
+                onClick={() => scrollToSection('2')}
+              />
+              <PktStep
+                title="Grunnlag for søknad"
+                status={getStepStatus('3')}
+                onClick={() => scrollToSection('3')}
+              />
+              <PktStep
+                title="Konsekvenser og tiltak"
+                status={getStepStatus('4')}
+                onClick={() => scrollToSection('4')}
+              />
+              <PktStep
+                title="Vurdering fra rådgiver"
+                status={getStepStatus('5')}
+                onClick={() => scrollToSection('5')}
+              />
+            </PktStepper>
+          </div>
+        </aside>
+
+        {/* Form Content */}
+        <div className="flex-1 min-w-0">
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1 */}
-        <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
+        <fieldset ref={section1Ref} className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
             <legend className="text-lg font-semibold text-pri px-2">1. Prosjektinformasjon</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mt-4">
                 <PktTextinput
@@ -421,7 +499,7 @@ const MainForm: React.FC = () => {
         </fieldset>
 
         {/* Section 2 */}
-        <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
+        <fieldset ref={section2Ref} className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
             <legend className="text-lg font-semibold text-pri px-2">2. Søknadsdetaljer</legend>
             <div className="mt-4 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
@@ -517,7 +595,7 @@ const MainForm: React.FC = () => {
         </fieldset>
 
         {/* Section 3 - Animated conditional rendering */}
-        <div className={`transition-all duration-500 ease-in-out overflow-hidden ${formData.applicationType ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div ref={section3Ref} className={`transition-all duration-500 ease-in-out overflow-hidden scroll-mt-28 ${formData.applicationType ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
           {formData.applicationType && (
               <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
                   <legend className="text-lg font-semibold text-pri px-2">
@@ -632,7 +710,7 @@ const MainForm: React.FC = () => {
 
 
         {/* Section 4 */}
-        <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
+        <fieldset ref={section4Ref} className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
             <legend className="text-lg font-semibold text-pri px-2">4. Konsekvenser og avbøtende tiltak</legend>
             <div className="mt-4 space-y-6">
                 <PktTextarea
@@ -661,7 +739,7 @@ const MainForm: React.FC = () => {
         </fieldset>
 
         {/* Section 5 */}
-        <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
+        <fieldset ref={section5Ref} className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
             <legend className="text-lg font-semibold text-pri px-2">5. Vurdering fra rådgiver</legend>
             <div className="mt-4 space-y-6">
                  <PktTextarea
@@ -729,6 +807,7 @@ const MainForm: React.FC = () => {
         </div>
 
       </form>
+      </div>
       <MachineModal
         isOpen={isMachineModalOpen}
         onClose={handleCloseMachineModal}
