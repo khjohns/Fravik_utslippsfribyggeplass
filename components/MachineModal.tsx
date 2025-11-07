@@ -124,7 +124,7 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
         </div>
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Gruppe 1: Generelt */}
-          <fieldset className="border border-border-color rounded-lg p-6">
+          <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
             <legend className="text-lg font-semibold text-pri px-2">Generelt</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mt-4">
               <PktSelect
@@ -167,7 +167,7 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
           </fieldset>
 
           {/* Gruppe 2: Begrunnelse for fravik */}
-          <fieldset className="border border-border-color rounded-lg p-6">
+          <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
             <legend className="text-lg font-semibold text-pri px-2">Begrunnelse for fravik</legend>
             <div className="mt-4 space-y-6">
               <div>
@@ -232,7 +232,7 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
           </fieldset>
 
           {/* Gruppe 3: Informasjon om erstatningsmaskin */}
-          <fieldset className="border border-border-color rounded-lg p-6">
+          <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
             <legend className="text-lg font-semibold text-pri px-2">Informasjon om erstatningsmaskin</legend>
             <div className="mt-4 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
@@ -275,7 +275,7 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
           </fieldset>
 
           {/* Gruppe 4: Vurderinger */}
-          <fieldset className="border border-border-color rounded-lg p-6">
+          <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
             <legend className="text-lg font-semibold text-pri px-2">Vurderinger</legend>
             <div className="mt-4">
               <PktTextarea
