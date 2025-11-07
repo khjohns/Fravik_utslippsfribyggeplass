@@ -1,5 +1,5 @@
 // Fix: Removed invalid CDATA wrapper from the file content.
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker, PktStepper, PktStep } from '@oslokommune/punkt-react';
 import type { FormData, Machine } from '../types';
@@ -123,6 +123,51 @@ const MainForm: React.FC = () => {
   const section3Ref = useRef<HTMLDivElement>(null);
   const section4Ref = useRef<HTMLFieldSetElement>(null);
   const section5Ref = useRef<HTMLFieldSetElement>(null);
+
+  // Scroll Spy: Automatically update activeStep based on visible section
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '-20% 0px -70% 0px', // Trigger when section is in upper 30% of viewport
+      threshold: 0
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const sectionId = entry.target.getAttribute('data-section');
+          if (sectionId) {
+            setActiveStep(sectionId);
+          }
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    // Observe all sections
+    const sections = [
+      section1Ref.current,
+      section2Ref.current,
+      section3Ref.current,
+      section4Ref.current,
+      section5Ref.current
+    ];
+
+    sections.forEach((section) => {
+      if (section) {
+        observer.observe(section);
+      }
+    });
+
+    return () => {
+      sections.forEach((section) => {
+        if (section) {
+          observer.unobserve(section);
+        }
+      });
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string; value: string }}) => {
     const { name, value } = e.target;
@@ -479,7 +524,7 @@ const MainForm: React.FC = () => {
         <div className="flex-1 min-w-0">
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1 */}
-        <fieldset ref={section1Ref} className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
+        <fieldset ref={section1Ref} data-section="1" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
             <legend className="text-lg font-semibold text-pri px-2">1. Prosjektinformasjon</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mt-4">
                 <PktTextinput
@@ -522,7 +567,7 @@ const MainForm: React.FC = () => {
         </fieldset>
 
         {/* Section 2 */}
-        <fieldset ref={section2Ref} className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
+        <fieldset ref={section2Ref} data-section="2" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
             <legend className="text-lg font-semibold text-pri px-2">2. Søknadsdetaljer</legend>
             <div className="mt-4 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
@@ -618,7 +663,7 @@ const MainForm: React.FC = () => {
         </fieldset>
 
         {/* Section 3 - Animated conditional rendering */}
-        <div ref={section3Ref} className={`transition-all duration-500 ease-in-out overflow-hidden scroll-mt-28 ${formData.applicationType ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div ref={section3Ref} data-section="3" className={`transition-all duration-500 ease-in-out overflow-hidden scroll-mt-28 ${formData.applicationType ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
           {formData.applicationType && (
               <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
                   <legend className="text-lg font-semibold text-pri px-2">
@@ -733,7 +778,7 @@ const MainForm: React.FC = () => {
 
 
         {/* Section 4 */}
-        <fieldset ref={section4Ref} className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
+        <fieldset ref={section4Ref} data-section="4" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
             <legend className="text-lg font-semibold text-pri px-2">4. Konsekvenser og avbøtende tiltak</legend>
             <div className="mt-4 space-y-6">
                 <PktTextarea
@@ -762,7 +807,7 @@ const MainForm: React.FC = () => {
         </fieldset>
 
         {/* Section 5 */}
-        <fieldset ref={section5Ref} className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
+        <fieldset ref={section5Ref} data-section="5" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
             <legend className="text-lg font-semibold text-pri px-2">5. Vurdering fra rådgiver</legend>
             <div className="mt-4 space-y-6">
                  <PktTextarea
