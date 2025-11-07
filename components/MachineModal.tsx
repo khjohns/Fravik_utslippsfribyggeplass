@@ -61,6 +61,17 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
     setMachineData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleDateRangeChange = (event: CustomEvent<string[]>) => {
+    const dates = event.detail;
+    if (dates && dates.length === 2) {
+      setMachineData(prev => ({
+        ...prev,
+        startDate: dates[0],
+        endDate: dates[1]
+      }));
+    }
+  };
+
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     setMachineData(prev => ({ ...prev, [name]: checked }));
@@ -141,22 +152,14 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                   />
               )}
               <PktDatepicker
-                  id="startDate"
-                  label="Startdato for bruk"
-                  name="startDate"
-                  value={machineData.startDate}
-                  onChange={handleChange}
+                  id="dateRange"
+                  label="Dato for bruk (startdato - sluttdato)"
+                  name="dateRange"
+                  value={machineData.startDate && machineData.endDate ? [machineData.startDate, machineData.endDate] : []}
+                  onValueChange={handleDateRangeChange}
                   required
                   fullwidth
-              />
-              <PktDatepicker
-                  id="endDate"
-                  label="Sluttdato for bruk"
-                  name="endDate"
-                  value={machineData.endDate}
-                  onChange={handleChange}
-                  required
-                  fullwidth
+                  mode="range"
               />
             </div>
           </fieldset>
