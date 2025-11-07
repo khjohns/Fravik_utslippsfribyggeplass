@@ -662,7 +662,7 @@ const MainForm: React.FC = () => {
             <div className="space-y-6">
                  <PktTextarea
                     id="advisorAssessment"
-                    label="Oppsummering av vurdering fra rådgiver i Bæraft og Innovasjon (BOI)"
+                    label="Vurdering fra rådgiver i Bærekraft og Innovasjon (BOI)"
                     name="advisorAssessment"
                     value={formData.advisorAssessment}
                     onChange={handleAdvisorAssessmentChange}
