@@ -400,30 +400,38 @@ const MainForm: React.FC = () => {
     }
   };
 
-  // Calculate step status
+  // Calculate step status based on form data completion
   const getStepStatus = (stepNumber: string): 'completed' | 'current' | 'incomplete' => {
-    if (stepNumber === activeStep) return 'current';
-
-    const stepNum = parseInt(stepNumber);
-    const activeNum = parseInt(activeStep);
-
-    // Basic completion logic - can be enhanced
-    if (stepNum < activeNum) {
-      switch (stepNumber) {
+    // Check completion status for each step independently
+    const isStepComplete = (step: string): boolean => {
+      switch (step) {
         case '1':
-          return formData.projectName && formData.projectNumber ? 'completed' : 'incomplete';
+          return !!(formData.projectName && formData.projectNumber && formData.mainContractor && formData.contractBasis);
         case '2':
-          return formData.submittedBy && formData.submitterName ? 'completed' : 'incomplete';
+          return !!(formData.submittedBy && formData.submitterName && formData.primaryDriver && formData.deadline && formData.applicationType);
         case '3':
-          return formData.applicationType ? 'completed' : 'incomplete';
+          if (formData.applicationType === 'machine') {
+            return formData.machines.length > 0;
+          } else if (formData.applicationType === 'infrastructure') {
+            return !!(formData.infrastructure.powerAccessDescription && formData.infrastructure.infrastructureReplacement);
+          }
+          return false;
         case '4':
-          return formData.mitigatingMeasures ? 'completed' : 'incomplete';
+          return !!(formData.mitigatingMeasures && formData.consequencesOfRejection);
+        case '5':
+          return !!(formData.advisorAssessment || formData.advisorAttachment);
         default:
-          return 'incomplete';
+          return false;
       }
+    };
+
+    // If it's the active step, mark as current
+    if (stepNumber === activeStep) {
+      return 'current';
     }
 
-    return 'incomplete';
+    // Otherwise, check if completed
+    return isStepComplete(stepNumber) ? 'completed' : 'incomplete';
   };
 
   return (
@@ -437,26 +445,31 @@ const MainForm: React.FC = () => {
                 title="Prosjektinformasjon"
                 status={getStepStatus('1')}
                 onClick={() => scrollToSection('1')}
+                style={{ cursor: 'pointer' }}
               />
               <PktStep
                 title="Søknadsdetaljer"
                 status={getStepStatus('2')}
                 onClick={() => scrollToSection('2')}
+                style={{ cursor: 'pointer' }}
               />
               <PktStep
                 title="Grunnlag for søknad"
                 status={getStepStatus('3')}
                 onClick={() => scrollToSection('3')}
+                style={{ cursor: 'pointer' }}
               />
               <PktStep
                 title="Konsekvenser og tiltak"
                 status={getStepStatus('4')}
                 onClick={() => scrollToSection('4')}
+                style={{ cursor: 'pointer' }}
               />
               <PktStep
                 title="Vurdering fra rådgiver"
                 status={getStepStatus('5')}
                 onClick={() => scrollToSection('5')}
+                style={{ cursor: 'pointer' }}
               />
             </PktStepper>
           </div>
