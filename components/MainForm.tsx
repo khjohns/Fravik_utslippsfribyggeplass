@@ -378,9 +378,9 @@ const MainForm: React.FC = () => {
     <>
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1 */}
-        <div className="bg-card-bg p-8 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">1. Prosjektinformasjon</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+        <fieldset className="border border-border-color rounded-lg p-6">
+            <legend className="text-lg font-semibold text-pri px-2">1. Prosjektinformasjon</legend>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mt-4">
                 <PktTextinput
                     id="projectName"
                     label="Prosjektnavn"
@@ -418,11 +418,12 @@ const MainForm: React.FC = () => {
                     <option value="Kontrakt inngått ETTER 1. jan 2025">Kontrakt inngått ETTER 1. jan 2025</option>
                 </PktSelect>
             </div>
-        </div>
+        </fieldset>
 
         {/* Section 2 */}
-        <div className="bg-card-bg p-8 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">2. Søknadsdetaljer</h2>
+        <fieldset className="border border-border-color rounded-lg p-6">
+            <legend className="text-lg font-semibold text-pri px-2">2. Søknadsdetaljer</legend>
+            <div className="mt-4 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <PktSelect
                     id="submittedBy"
@@ -512,15 +513,17 @@ const MainForm: React.FC = () => {
                     />
                 </div>
             </div>
-        </div>
-        
+            </div>
+        </fieldset>
+
         {/* Section 3 - Animated conditional rendering */}
         <div className={`transition-all duration-500 ease-in-out overflow-hidden ${formData.applicationType ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
           {formData.applicationType && (
-              <div className="bg-card-bg p-8 rounded-lg shadow-lg">
-                  <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">
+              <fieldset className="border border-border-color rounded-lg p-6">
+                  <legend className="text-lg font-semibold text-pri px-2">
                     3. Grunnlag for søknad: {formData.applicationType === 'machine' ? 'Maskin/kjøretøy' : 'Infrastruktur'}
-                  </h2>
+                  </legend>
+                  <div className="mt-4 space-y-6">
 
                   {/* Section 3A */}
                   {formData.applicationType === 'machine' && (
@@ -622,15 +625,16 @@ const MainForm: React.FC = () => {
                           />
                       </div>
                   )}
-              </div>
+                  </div>
+              </fieldset>
           )}
         </div>
 
 
         {/* Section 4 */}
-        <div className="bg-card-bg p-8 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">4. Konsekvenser og avbøtende tiltak</h2>
-            <div className="space-y-6">
+        <fieldset className="border border-border-color rounded-lg p-6">
+            <legend className="text-lg font-semibold text-pri px-2">4. Konsekvenser og avbøtende tiltak</legend>
+            <div className="mt-4 space-y-6">
                 <PktTextarea
                     id="mitigatingMeasures"
                     label="Hvilke avbøtende tiltak er vurdert eller planlagt?"
@@ -654,12 +658,12 @@ const MainForm: React.FC = () => {
                     fullwidth
                 />
             </div>
-        </div>
+        </fieldset>
 
         {/* Section 5 */}
-        <div className="bg-card-bg p-8 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">5. Vurdering fra rådgiver</h2>
-            <div className="space-y-6">
+        <fieldset className="border border-border-color rounded-lg p-6">
+            <legend className="text-lg font-semibold text-pri px-2">5. Vurdering fra rådgiver</legend>
+            <div className="mt-4 space-y-6">
                  <PktTextarea
                     id="advisorAssessment"
                     label="Vurdering fra rådgiver i Bærekraft og Innovasjon (BOI)"
@@ -685,8 +689,8 @@ const MainForm: React.FC = () => {
                 />
                 {advisorValidationError && <p className="text-center text-sm text-warn">{advisorValidationError}</p>}
             </div>
-        </div>
-        
+        </fieldset>
+
         {/* Submission State */}
         {renderSubmissionState()}
 
