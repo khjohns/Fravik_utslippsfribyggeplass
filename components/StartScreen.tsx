@@ -7,7 +7,7 @@ interface StartScreenProps {
 
 const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   return (
-    <div className="bg-card-bg p-8 rounded-lg shadow-lg">
+    <div className="bg-card-bg p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
       <p className="text-ink-dim mb-4 max-w-3xl mx-auto">
         Dette skjemaet brukes for å søke om formelt unntak fra kontraktsfestede krav om utslippsfri byggeplass i prosjekter hos Oslobygg KF.
       </p>

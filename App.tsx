@@ -25,7 +25,7 @@ const App: React.FC = () => {
       <h1 className="sr-only">Søknad om fravik - Krav til utslippsfri byggeplass</h1>
 
       <main className="pt-24 pb-8 sm:pb-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {appState === 'start' && <StartScreen onStart={handleStartApplication} />}
           {appState === 'form' && <MainForm />}
         </div>
