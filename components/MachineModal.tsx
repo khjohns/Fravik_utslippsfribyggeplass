@@ -111,161 +111,181 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
           <h2 className="text-2xl font-bold text-pri">{modalTitle}</h2>
           <button onClick={onClose} className="text-muted hover:text-ink text-3xl font-bold">&times;</button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-            <PktSelect
-                id="type"
-                label="Type maskin/kjøretøy"
-                name="type"
-                value={machineData.type}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Gruppe 1: Generelt */}
+          <fieldset className="border border-border-color rounded-lg p-6">
+            <legend className="text-lg font-semibold text-pri px-2">Generelt</legend>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mt-4">
+              <PktSelect
+                  id="type"
+                  label="Type maskin/kjøretøy"
+                  name="type"
+                  value={machineData.type}
+                  onChange={handleChange}
+                  required
+              >
+                  <option value="">Velg type...</option>
+                  <option value="Gravemaskin">Gravemaskin</option>
+                  <option value="Hjullaster">Hjullaster</option>
+                  <option value="Lift">Lift</option>
+                  <option value="Annet">Annet</option>
+              </PktSelect>
+              {machineData.type === 'Annet' && (
+                  <PktTextinput
+                      id="otherType"
+                      label="Spesifiser annen type"
+                      name="otherType"
+                      value={machineData.otherType || ''}
+                      onChange={handleChange}
+                      required
+                  />
+              )}
+              <PktDatepicker
+                  id="startDate"
+                  label="Startdato for bruk"
+                  name="startDate"
+                  value={machineData.startDate}
+                  onChange={handleChange}
+                  required
+                  fullwidth
+              />
+              <PktDatepicker
+                  id="endDate"
+                  label="Sluttdato for bruk"
+                  name="endDate"
+                  value={machineData.endDate}
+                  onChange={handleChange}
+                  required
+                  fullwidth
+              />
+            </div>
+          </fieldset>
+
+          {/* Gruppe 2: Begrunnelse for fravik */}
+          <fieldset className="border border-border-color rounded-lg p-6">
+            <legend className="text-lg font-semibold text-pri px-2">Begrunnelse for fravik</legend>
+            <div className="mt-4 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-ink-dim mb-3">Velg relevante grunner (flere valg er mulig)</label>
+                {reasonError && <p className="text-sm text-warn mb-2">{reasonError}</p>}
+                <div className="flex flex-col gap-y-2">
+                  {reasonOptions.map(reason => (
+                    <PktCheckbox
+                      key={reason}
+                      id={`reason-${reason}`}
+                      label={reason}
+                      value={reason}
+                      checked={machineData.reasons.includes(reason)}
+                      onChange={handleReasonChange}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <PktTextarea
+                id="detailedReasoning"
+                label="Detaljert begrunnelse"
+                name="detailedReasoning"
+                value={machineData.detailedReasoning}
                 onChange={handleChange}
+                placeholder="Utdyp hvorfor fravik er nødvendig. Beskriv tekniske begrensninger, markedssituasjon, etc."
                 required
-            >
-                <option value="">Velg type...</option>
-                <option value="Gravemaskin">Gravemaskin</option>
-                <option value="Hjullaster">Hjullaster</option>
-                <option value="Lift">Lift</option>
-                <option value="Annet">Annet</option>
-            </PktSelect>
-            {machineData.type === 'Annet' && (
+                fullwidth
+                rows={4}
+              />
+
+              <div className="bg-body-bg p-4 rounded-md border border-border-color space-y-4">
+                <PktCheckbox
+                  id="marketSurveyConfirmed"
+                  name="marketSurveyConfirmed"
+                  label="Markedsundersøkelse er gjennomført for å finne utslippsfrie alternativer"
+                  checked={machineData.marketSurveyConfirmed}
+                  onChange={handleCheckboxChange}
+                />
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${machineData.marketSurveyConfirmed ? 'max-h-96' : 'max-h-0'}`}>
+                    <PktTextarea
+                        id="surveyedCompanies"
+                        label="Hvilke selskaper er forespurt?"
+                        name="surveyedCompanies"
+                        value={machineData.surveyedCompanies}
+                        onChange={handleChange}
+                        placeholder="F.eks. Pon Equipment AS, Volvo Maskin AS, etc."
+                        required={machineData.marketSurveyConfirmed}
+                        fullwidth
+                        rows={4}
+                    />
+                </div>
+              </div>
+
+              <FileUploadField
+                label="Last opp dokumentasjon (f.eks. svar fra leverandør)"
+                id="machineDocumentation"
+                onChange={handleFileChange}
+                fileName={documentationName}
+              />
+            </div>
+          </fieldset>
+
+          {/* Gruppe 3: Informasjon om erstatningsmaskin */}
+          <fieldset className="border border-border-color rounded-lg p-6">
+            <legend className="text-lg font-semibold text-pri px-2">Informasjon om erstatningsmaskin</legend>
+            <div className="mt-4 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <PktTextinput
-                    id="otherType"
-                    label="Spesifiser annen type"
-                    name="otherType"
-                    value={machineData.otherType || ''}
+                    id="replacementMachine"
+                    label="Hvilken maskin/kjøretøy skal benyttes i stedet?"
+                    name="replacementMachine"
+                    value={machineData.replacementMachine}
                     onChange={handleChange}
+                    placeholder="Merke, modell, Euro-klasse, etc."
                     required
                 />
-            )}
-            <PktDatepicker
-                id="startDate"
-                label="Startdato for bruk"
-                name="startDate"
-                value={machineData.startDate}
-                onChange={handleChange}
-                required
-                fullwidth
-            />
-            <PktDatepicker
-                id="endDate"
-                label="Sluttdato for bruk"
-                name="endDate"
-                value={machineData.endDate}
-                onChange={handleChange}
-                required
-                fullwidth
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-ink-dim mb-2">Begrunnelse for fravik (flere valg er mulig)</label>
-            {reasonError && <p className="text-sm text-warn -mt-1 mb-2">{reasonError}</p>}
-            <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-3">
-              {reasonOptions.map(reason => (
-                <PktCheckbox
-                  key={reason}
-                  id={`reason-${reason}`}
-                  label={reason}
-                  value={reason}
-                  checked={machineData.reasons.includes(reason)}
-                  onChange={handleReasonChange}
-                />
-              ))}
-            </div>
-          </div>
-          
-          <PktTextarea
-            id="detailedReasoning"
-            label="Detaljert begrunnelse"
-            name="detailedReasoning"
-            value={machineData.detailedReasoning}
-            onChange={handleChange}
-            placeholder="Utdyp hvorfor fravik er nødvendig. Beskriv tekniske begrensninger, markedssituasjon, etc."
-            required
-            fullwidth
-            rows={4}
-          />
-
-          <div className="bg-body-bg p-4 rounded-md border border-border-color space-y-4">
-            <PktCheckbox
-              id="marketSurveyConfirmed"
-              name="marketSurveyConfirmed"
-              label="Markedsundersøkelse er gjennomført for å finne utslippsfrie alternativer"
-              checked={machineData.marketSurveyConfirmed}
-              onChange={handleCheckboxChange}
-            />
-            <div className={`transition-all duration-300 ease-in-out overflow-hidden ${machineData.marketSurveyConfirmed ? 'max-h-96' : 'max-h-0'}`}>
-                <PktTextarea
-                    id="surveyedCompanies"
-                    label="Hvilke selskaper er forespurt?"
-                    name="surveyedCompanies"
-                    value={machineData.surveyedCompanies}
+                 <PktSelect
+                    id="replacementFuel"
+                    label="Drivstoff for erstatningsmaskin"
+                    name="replacementFuel"
+                    value={machineData.replacementFuel}
                     onChange={handleChange}
-                    placeholder="F.eks. Pon Equipment AS, Volvo Maskin AS, etc."
-                    required={machineData.marketSurveyConfirmed}
-                    fullwidth
-                    rows={4}
-                />
+                    required
+                 >
+                    <option value="">Velg drivstoff...</option>
+                    <option value="HVO100">HVO100</option>
+                    <option value="Annet biodrivstoff">Annet biodrivstoff</option>
+                    <option value="Diesel (Euro 6)">Diesel (Euro 6)</option>
+                </PktSelect>
+              </div>
+
+               <PktTextarea
+                id="workDescription"
+                label="Beskrivelse av arbeidsoppgaver"
+                name="workDescription"
+                value={machineData.workDescription}
+                onChange={handleChange}
+                placeholder="Beskriv hva maskinen/kjøretøyet skal brukes til."
+                required
+                fullwidth
+                rows={4}
+              />
             </div>
-          </div>
-          
-          <FileUploadField 
-            label="Last opp dokumentasjon (f.eks. svar fra leverandør)"
-            id="machineDocumentation"
-            onChange={handleFileChange}
-            fileName={documentationName}
-          />
+          </fieldset>
 
-          <h3 className="text-lg font-semibold text-pri border-t border-border-color pt-6 mt-6">Erstatningsmaskin</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-            <PktTextinput
-                id="replacementMachine"
-                label="Hvilken maskin/kjøretøy skal benyttes i stedet?"
-                name="replacementMachine"
-                value={machineData.replacementMachine}
+          {/* Gruppe 4: Vurderinger */}
+          <fieldset className="border border-border-color rounded-lg p-6">
+            <legend className="text-lg font-semibold text-pri px-2">Vurderinger</legend>
+            <div className="mt-4">
+              <PktTextarea
+                id="alternativeSolutions"
+                label="Vurdering av alternative løsninger"
+                name="alternativeSolutions"
+                value={machineData.alternativeSolutions}
                 onChange={handleChange}
-                placeholder="Merke, modell, Euro-klasse, etc."
+                placeholder="Hvilke andre løsninger er vurdert (f.eks. bruk av mindre maskiner, batteribanker, endret metode)? Hvorfor er de ikke valgt?"
                 required
-            />
-             <PktSelect
-                id="replacementFuel"
-                label="Drivstoff for erstatningsmaskin"
-                name="replacementFuel"
-                value={machineData.replacementFuel}
-                onChange={handleChange}
-                required
-             >
-                <option value="">Velg drivstoff...</option>
-                <option value="HVO100">HVO100</option>
-                <option value="Annet biodrivstoff">Annet biodrivstoff</option>
-                <option value="Diesel (Euro 6)">Diesel (Euro 6)</option>
-            </PktSelect>
-          </div>
-          
-           <PktTextarea
-            id="workDescription"
-            label="Beskrivelse av arbeidsoppgaver"
-            name="workDescription"
-            value={machineData.workDescription}
-            onChange={handleChange}
-            placeholder="Beskriv hva maskinen/kjøretøyet skal brukes til."
-            required
-            fullwidth
-            rows={4}
-          />
-
-          <PktTextarea
-            id="alternativeSolutions"
-            label="Vurdering av alternative løsninger"
-            name="alternativeSolutions"
-            value={machineData.alternativeSolutions}
-            onChange={handleChange}
-            placeholder="Hvilke andre løsninger er vurdert (f.eks. bruk av mindre maskiner, batteribanker, endret metode)? Hvorfor er de ikke valgt?"
-            required
-            fullwidth
-            rows={4}
-          />
+                fullwidth
+                rows={4}
+              />
+            </div>
+          </fieldset>
 
           <div className="flex justify-end space-x-4 pt-6 mt-6 border-t border-border-color">
             <PktButton type="button" onClick={onClose} skin="tertiary" size="medium">
