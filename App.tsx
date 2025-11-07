@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PktHeader } from '@oslokommune/punkt-react';
 import StartScreen from './components/StartScreen';
 import MainForm from './components/MainForm';
 
@@ -13,6 +14,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-body-bg text-ink font-sans">
+      <PktHeader serviceName="Søknad om fravik - Utslippsfri byggeplass" />
+
       <main className="py-12 sm:py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">

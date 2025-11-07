@@ -507,7 +507,6 @@ const MainForm: React.FC = () => {
                         onChange={handleChange}
                         placeholder="Begrunn hvorfor søknad sendes uten ugrunnet opphold."
                         required={formData.isUrgent}
-                        required={formData.isUrgent}
                         fullwidth
                         rows={4}
                     />
