@@ -16,7 +16,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-body-bg text-ink font-sans">
       <PktHeader serviceName="Fravik utslippsfri byggeplass" />
 
-      <main className="py-8 sm:py-12">
+      <main className="pt-20 pb-8 sm:pb-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {appState === 'start' && <StartScreen onStart={handleStartApplication} />}
           {appState === 'form' && <MainForm />}
