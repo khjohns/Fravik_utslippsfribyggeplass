@@ -380,7 +380,7 @@ const MainForm: React.FC = () => {
         {/* Section 1 */}
         <div className="bg-card-bg p-8 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">1. Prosjektinformasjon</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <PktTextinput
                     id="projectName"
                     label="Prosjektnavn"
@@ -423,7 +423,7 @@ const MainForm: React.FC = () => {
         {/* Section 2 */}
         <div className="bg-card-bg p-8 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-pri mb-6 border-b border-border-color pb-4">2. Søknadsdetaljer</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <PktSelect
                     id="submittedBy"
                     label="Søknad sendes inn av"
