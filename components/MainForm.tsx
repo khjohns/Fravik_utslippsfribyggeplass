@@ -114,6 +114,16 @@ const MainForm: React.FC = () => {
     status: 'idle',
   });
 
+  // Stepper state
+  const [activeStep, setActiveStep] = useState<string>('1');
+
+  // Refs for scroll-to-section
+  const section1Ref = useRef<HTMLFieldSetElement>(null);
+  const section2Ref = useRef<HTMLFieldSetElement>(null);
+  const section3Ref = useRef<HTMLDivElement>(null);
+  const section4Ref = useRef<HTMLFieldSetElement>(null);
+  const section5Ref = useRef<HTMLFieldSetElement>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string; value: string }}) => {
     const { name, value } = e.target;
     
