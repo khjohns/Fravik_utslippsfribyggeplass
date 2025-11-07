@@ -818,6 +818,7 @@ const MainForm: React.FC = () => {
 
       </form>
       </div>
+      </div>
       <MachineModal
         isOpen={isMachineModalOpen}
         onClose={handleCloseMachineModal}
