@@ -428,9 +428,9 @@ const MainForm: React.FC = () => {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col md:flex-row gap-8">
         {/* Stepper Sidebar - Hidden on mobile, visible on large screens */}
-        <aside className="hidden lg:block lg:w-64 flex-shrink-0">
+        <aside className="hidden md:block md:w-64 flex-shrink-0">
           <div className="sticky top-28">
             <PktStepper activeStep={activeStep} orientation="vertical">
               <PktStep
