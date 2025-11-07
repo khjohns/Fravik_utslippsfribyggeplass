@@ -691,13 +691,14 @@ const MainForm: React.FC = () => {
         {renderSubmissionState()}
 
         {/* Submission */}
-        <div className="text-center space-y-4 pt-4">
-             <div className="flex justify-center items-center gap-4">
+        <div className="space-y-4 pt-4">
+             <div className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3">
                 <PktButton
                     type="button"
                     onClick={handleFillWithExample}
                     skin="secondary"
-                    size="large"
+                    size="medium"
+                    className="w-full sm:w-auto"
                 >
                     Fyll med eksempeldata
                 </PktButton>
@@ -705,7 +706,8 @@ const MainForm: React.FC = () => {
                     type="button"
                     onClick={handleReset}
                     skin="tertiary"
-                    size="large"
+                    size="medium"
+                    className="w-full sm:w-auto"
                 >
                     Nullstill
                 </PktButton>
@@ -713,8 +715,9 @@ const MainForm: React.FC = () => {
                     type="submit"
                     disabled={submissionState.status === 'submitting' || submissionState.status === 'validating'}
                     skin="primary"
-                    size="large"
+                    size="medium"
                     isLoading={submissionState.status === 'submitting' || submissionState.status === 'validating'}
+                    className="w-full sm:w-auto"
                 >
                     {submissionState.status === 'submitting' ? 'Sender...' : submissionState.status === 'validating' ? 'Validerer...' : 'Send inn søknad'}
                 </PktButton>
