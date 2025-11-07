@@ -161,7 +161,7 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                   fullwidth
                   multiple
                   range
-                  useWrapper
+                  useWrapper="{false}"
               />
             </div>
           </fieldset>
