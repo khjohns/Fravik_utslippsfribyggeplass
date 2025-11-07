@@ -159,9 +159,8 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                   onValueChange={handleDateRangeChange}
                   required
                   fullwidth
-                  multiple
                   range
-                  useWrapper="{false}"
+                  useWrapper
               />
             </div>
           </fieldset>
