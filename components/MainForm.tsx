@@ -108,6 +108,7 @@ const MainForm: React.FC = () => {
   const [editingMachineId, setEditingMachineId] = useState<string | null>(null);
   const [advisorAttachmentName, setAdvisorAttachmentName] = useState<string | null>(null);
   const [advisorValidationError, setAdvisorValidationError] = useState<string | null>(null);
+  const [isLoadingExample, setIsLoadingExample] = useState(false);
 
   // File state
   const [files, setFiles] = useState<{
@@ -244,10 +245,14 @@ const MainForm: React.FC = () => {
     }
   }
   
-  const handleFillWithExample = useCallback(() => {
+  const handleFillWithExample = useCallback(async () => {
+    setIsLoadingExample(true);
+    // Simulate async operation (e.g., fetching from API)
+    await new Promise(resolve => setTimeout(resolve, 300));
     setFormData(exampleData);
     setAdvisorAttachmentName(null);
     setAdvisorValidationError(null);
+    setIsLoadingExample(false);
   }, []);
 
   const handleReset = useCallback(() => {
@@ -376,16 +381,16 @@ const MainForm: React.FC = () => {
 
       case 'validating':
         return (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4" role="status" aria-live="polite" aria-atomic="true">
             <p className="text-blue-800">Validerer skjemadata...</p>
           </div>
         );
 
       case 'submitting':
         return (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4" role="status" aria-live="polite" aria-atomic="true">
             <p className="text-blue-800 mb-2">Sender inn søknad...</p>
-            <div className="w-full bg-blue-200 rounded-full h-2">
+            <div className="w-full bg-blue-200 rounded-full h-2" role="progressbar" aria-valuenow={submissionState.progress} aria-valuemin={0} aria-valuemax={100} aria-label="Innsendingsprogress">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${submissionState.progress}%` }}
@@ -399,11 +404,11 @@ const MainForm: React.FC = () => {
 
       case 'success':
         return (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="text-green-800 font-semibold mb-2">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4" role="status" aria-live="polite" aria-atomic="true">
+            <h3 className="text-green-800 font-semibold mb-2" id="success-heading">
               ✅ Søknad sendt inn!
             </h3>
-            <p className="text-green-700">
+            <p className="text-green-700" aria-describedby="success-heading">
               Søknads-ID: <strong>{submissionState.applicationId}</strong>
             </p>
             <p className="text-green-600 text-sm mt-2">
@@ -414,11 +419,11 @@ const MainForm: React.FC = () => {
 
       case 'error':
         return (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="text-red-800 font-semibold mb-2">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert" aria-live="assertive" aria-atomic="true">
+            <h3 className="text-red-800 font-semibold mb-2" id="error-heading">
               ❌ Innsending feilet
             </h3>
-            <pre className="text-red-700 text-sm whitespace-pre-wrap">
+            <pre className="text-red-700 text-sm whitespace-pre-wrap" aria-describedby="error-heading">
               {submissionState.error}
             </pre>
             <PktButton
@@ -499,37 +504,87 @@ const MainForm: React.FC = () => {
     <>
       <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
         {/* Stepper Sidebar - Hidden on mobile, visible on large screens */}
-        <aside className="hidden lg:block lg:w-56 flex-shrink-0">
+        <aside className="hidden lg:block lg:w-56 flex-shrink-0" aria-label="Søknadsprogresjon">
           <div className="sticky top-28">
             <PktStepper activeStep={activeStep} orientation="vertical">
               <PktStep
                 title="Prosjektinformasjon"
                 status={getStepStatus('1')}
                 onClick={() => scrollToSection('1')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    scrollToSection('1');
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-current={activeStep === '1' ? 'step' : undefined}
+                aria-label={`Steg 1: Prosjektinformasjon - ${getStepStatus('1')}`}
                 style={{ cursor: 'pointer' }}
               />
               <PktStep
                 title="Søknadsdetaljer"
                 status={getStepStatus('2')}
                 onClick={() => scrollToSection('2')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    scrollToSection('2');
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-current={activeStep === '2' ? 'step' : undefined}
+                aria-label={`Steg 2: Søknadsdetaljer - ${getStepStatus('2')}`}
                 style={{ cursor: 'pointer' }}
               />
               <PktStep
                 title="Grunnlag for søknad"
                 status={getStepStatus('3')}
                 onClick={() => scrollToSection('3')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    scrollToSection('3');
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-current={activeStep === '3' ? 'step' : undefined}
+                aria-label={`Steg 3: Grunnlag for søknad - ${getStepStatus('3')}`}
                 style={{ cursor: 'pointer' }}
               />
               <PktStep
                 title="Konsekvenser og tiltak"
                 status={getStepStatus('4')}
                 onClick={() => scrollToSection('4')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    scrollToSection('4');
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-current={activeStep === '4' ? 'step' : undefined}
+                aria-label={`Steg 4: Konsekvenser og tiltak - ${getStepStatus('4')}`}
                 style={{ cursor: 'pointer' }}
               />
               <PktStep
                 title="Vurdering fra rådgiver"
                 status={getStepStatus('5')}
                 onClick={() => scrollToSection('5')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    scrollToSection('5');
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-current={activeStep === '5' ? 'step' : undefined}
+                aria-label={`Steg 5: Vurdering fra rådgiver - ${getStepStatus('5')}`}
                 style={{ cursor: 'pointer' }}
               />
             </PktStepper>
@@ -538,10 +593,10 @@ const MainForm: React.FC = () => {
 
         {/* Form Content */}
         <div className="flex-1 min-w-0">
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8" aria-label="Søknadsskjema">
         {/* Section 1 */}
-        <fieldset ref={section1Ref} data-section="1" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
-            <legend className="text-lg font-semibold text-pri px-2">1. Prosjektinformasjon</legend>
+        <fieldset ref={section1Ref} data-section="1" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-1-heading">
+            <legend id="section-1-heading" className="text-lg font-semibold text-pri px-2">1. Prosjektinformasjon</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mt-4">
                 <PktTextinput
                     id="projectName"
@@ -583,8 +638,8 @@ const MainForm: React.FC = () => {
         </fieldset>
 
         {/* Section 2 */}
-        <fieldset ref={section2Ref} data-section="2" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
-            <legend className="text-lg font-semibold text-pri px-2">2. Søknadsdetaljer</legend>
+        <fieldset ref={section2Ref} data-section="2" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-2-heading">
+            <legend id="section-2-heading" className="text-lg font-semibold text-pri px-2">2. Søknadsdetaljer</legend>
             <div className="mt-4 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <PktSelect
@@ -681,8 +736,8 @@ const MainForm: React.FC = () => {
         {/* Section 3 - Animated conditional rendering */}
         <div ref={section3Ref} data-section="3" className={`transition-all duration-500 ease-in-out overflow-hidden scroll-mt-28 ${formData.applicationType ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
           {formData.applicationType && (
-              <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
-                  <legend className="text-lg font-semibold text-pri px-2">
+              <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-3-heading">
+                  <legend id="section-3-heading" className="text-lg font-semibold text-pri px-2">
                     3. Grunnlag for søknad: {formData.applicationType === 'machine' ? 'Maskin/kjøretøy' : 'Infrastruktur'}
                   </legend>
                   <div className="mt-4 space-y-6">
@@ -794,8 +849,8 @@ const MainForm: React.FC = () => {
 
 
         {/* Section 4 */}
-        <fieldset ref={section4Ref} data-section="4" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
-            <legend className="text-lg font-semibold text-pri px-2">4. Konsekvenser og avbøtende tiltak</legend>
+        <fieldset ref={section4Ref} data-section="4" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-4-heading">
+            <legend id="section-4-heading" className="text-lg font-semibold text-pri px-2">4. Konsekvenser og avbøtende tiltak</legend>
             <div className="mt-4 space-y-6">
                 <PktTextarea
                     id="mitigatingMeasures"
@@ -823,8 +878,8 @@ const MainForm: React.FC = () => {
         </fieldset>
 
         {/* Section 5 */}
-        <fieldset ref={section5Ref} data-section="5" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28">
-            <legend className="text-lg font-semibold text-pri px-2">5. Vurdering fra rådgiver</legend>
+        <fieldset ref={section5Ref} data-section="5" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-5-heading">
+            <legend id="section-5-heading" className="text-lg font-semibold text-pri px-2">5. Vurdering fra rådgiver</legend>
             <div className="mt-4 space-y-6">
                  <PktTextarea
                     id="advisorAssessment"
@@ -865,8 +920,10 @@ const MainForm: React.FC = () => {
                     skin="secondary"
                     size="medium"
                     className="w-full sm:w-auto"
+                    disabled={isLoadingExample}
+                    aria-busy={isLoadingExample}
                 >
-                    Fyll med eksempeldata
+                    {isLoadingExample ? 'Laster...' : 'Fyll med eksempeldata'}
                 </PktButton>
                  <PktButton
                     type="button"
