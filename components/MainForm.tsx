@@ -10,8 +10,7 @@ import {
   validateBeforeSubmit,
   APIError
 } from '../services/api.service';
-import { useFormPersistence } from '../hooks/useFormPersistence';
-import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning';
+import { useFormPersistence, useUnsavedChangesWarning } from '../hooks';
 import { logger } from '../utils/logger';
 
 const MachineModal = lazy(() => import('./MachineModal'));

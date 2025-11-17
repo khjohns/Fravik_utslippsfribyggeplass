@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent, useRef } from 'react';
 import { PktButton, PktTextinput, PktSelect, PktTextarea, PktCheckbox, PktDatepicker } from '@oslokommune/punkt-react';
 import type { Machine } from '../types';
 import { FileUploadField } from './form/Fields';
@@ -39,8 +39,15 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
   const [documentationName, setDocumentationName] = useState<string | null>(null);
   const [reasonError, setReasonError] = useState<string | null>(null);
 
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     if (isOpen) {
+      // Store the currently focused element to restore later
+      previousActiveElement.current = document.activeElement as HTMLElement;
+
       if (machineToEdit) {
         setMachineData(machineToEdit);
         setDocumentationName(machineToEdit.documentation ? machineToEdit.documentation.name : null);
@@ -49,8 +56,41 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
         setDocumentationName(null);
       }
       setReasonError(null);
+
+      // Focus on the close button when modal opens
+      setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 100);
+    } else {
+      // Restore focus when modal closes
+      previousActiveElement.current?.focus();
     }
   }, [isOpen, machineToEdit]);
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isOpen && e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -116,11 +156,33 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
   const modalTitle = machineToEdit ? 'Rediger maskin' : 'Legg til ny maskin';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-card-bg rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+      onClick={(e) => {
+        // Close on backdrop click
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div
+        ref={modalRef}
+        className="bg-card-bg rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        role="document"
+      >
         <div className="flex justify-between items-center mb-6 border-b border-border-color pb-4">
-          <h2 className="text-2xl font-bold text-pri">{modalTitle}</h2>
-          <button onClick={onClose} className="text-muted hover:text-ink text-3xl font-bold">&times;</button>
+          <h2 id="modal-title" className="text-2xl font-bold text-pri">{modalTitle}</h2>
+          <button
+            ref={closeButtonRef}
+            onClick={onClose}
+            className="text-muted hover:text-ink text-3xl font-bold focus:outline-none focus:ring-2 focus:ring-pri rounded"
+            aria-label="Lukk modal"
+          >
+            &times;
+          </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Gruppe 1: Generelt */}
