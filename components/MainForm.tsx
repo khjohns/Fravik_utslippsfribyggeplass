@@ -1,5 +1,5 @@
 // Fix: Removed invalid CDATA wrapper from the file content.
-import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useRef, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker, PktStepper, PktStep } from '@oslokommune/punkt-react';
 import type { FormData, Machine } from '../types';
@@ -179,9 +179,9 @@ const MainForm: React.FC = () => {
     };
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string; value: string }}) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string; value: string }}) => {
     const { name, value } = e.target;
-    
+
     // Check if it's a checkbox based on the event object, not type string
     if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
         const { checked } = e.target;
@@ -189,9 +189,9 @@ const MainForm: React.FC = () => {
     } else {
         setFormData((prev) => ({ ...prev, [name]: value }));
     }
-  };
+  }, []);
   
-  const handleInfraCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInfraCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -200,9 +200,9 @@ const MainForm: React.FC = () => {
         [name]: checked
       }
     }));
-  };
+  }, []);
 
-  const handleInfraTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInfraTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -211,7 +211,7 @@ const MainForm: React.FC = () => {
         [name]: value
       }
     }));
-  };
+  }, []);
 
   /**
    * Handle file input change
@@ -244,13 +244,13 @@ const MainForm: React.FC = () => {
     }
   }
   
-  const handleFillWithExample = () => {
+  const handleFillWithExample = useCallback(() => {
     setFormData(exampleData);
     setAdvisorAttachmentName(null);
     setAdvisorValidationError(null);
-  };
+  }, []);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     if (window.confirm('Er du sikker på at du vil nullstille hele skjemaet? All data vil bli slettet.')) {
       setFormData(initialFormData);
       setFiles({});
@@ -258,19 +258,19 @@ const MainForm: React.FC = () => {
       setSubmissionState({ status: 'idle' });
       setAdvisorValidationError(null);
     }
-  };
+  }, []);
 
-  const handleOpenMachineModal = (id?: string) => {
+  const handleOpenMachineModal = useCallback((id?: string) => {
     setEditingMachineId(id || null);
     setIsMachineModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseMachineModal = () => {
+  const handleCloseMachineModal = useCallback(() => {
     setIsMachineModalOpen(false);
     setEditingMachineId(null);
-  };
+  }, []);
 
-  const handleSaveMachine = (machine: Machine) => {
+  const handleSaveMachine = useCallback((machine: Machine) => {
     if (editingMachineId) {
       setFormData((prev) => ({
         ...prev,
@@ -283,16 +283,16 @@ const MainForm: React.FC = () => {
       }));
     }
     handleCloseMachineModal();
-  };
+  }, [editingMachineId, handleCloseMachineModal]);
 
-  const handleDeleteMachine = (id: string) => {
+  const handleDeleteMachine = useCallback((id: string) => {
     if (window.confirm('Er du sikker på at du vil slette denne maskinen?')) {
         setFormData((prev) => ({
         ...prev,
         machines: prev.machines.filter((m) => m.id !== id),
         }));
     }
-  };
+  }, []);
   
   /**
    * Handle form submission
@@ -435,15 +435,18 @@ const MainForm: React.FC = () => {
     }
   };
 
-  const editingMachine = editingMachineId ? formData.machines.find(m => m.id === editingMachineId) : null;
+  const editingMachine = useMemo(
+    () => editingMachineId ? formData.machines.find(m => m.id === editingMachineId) : null,
+    [editingMachineId, formData.machines]
+  );
 
-  const applicationTypeOptions = [
+  const applicationTypeOptions = useMemo(() => [
       { value: 'machine', label: 'Spesifikk maskin / kjøretøy' },
       { value: 'infrastructure', label: 'Elektrisk infrastruktur på byggeplass' }
-  ];
+  ], []);
 
   // Scroll to section when step is clicked
-  const scrollToSection = (stepNumber: string) => {
+  const scrollToSection = useCallback((stepNumber: string) => {
     setActiveStep(stepNumber);
     const refs = {
       '1': section1Ref,
@@ -456,10 +459,10 @@ const MainForm: React.FC = () => {
     if (targetRef?.current) {
       targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  };
+  }, []);
 
   // Calculate step status based on form data completion
-  const getStepStatus = (stepNumber: string): 'completed' | 'current' | 'incomplete' => {
+  const getStepStatus = useCallback((stepNumber: string): 'completed' | 'current' | 'incomplete' => {
     // Check completion status for each step independently
     const isStepComplete = (step: string): boolean => {
       switch (step) {
@@ -490,7 +493,7 @@ const MainForm: React.FC = () => {
 
     // Otherwise, check if completed
     return isStepComplete(stepNumber) ? 'completed' : 'incomplete';
-  };
+  }, [activeStep, formData]);
 
   return (
     <>
