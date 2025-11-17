@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FormData } from '../types';
+import { logger } from '../utils/logger';
 
 const STORAGE_KEY = 'fravik-form-draft';
 const AUTOSAVE_DELAY = 2000; // 2 sekunder
@@ -25,14 +26,14 @@ export const useFormPersistence = (initialData: FormData) => {
         // Sjekk om lagrede data er nylige (< 7 dager gamle)
         const maxAge = MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
         if (parsed.timestamp && Date.now() - parsed.timestamp < maxAge) {
-          console.log('Lastet lagret formdata fra localStorage');
+          logger.log('Lastet lagret formdata fra localStorage');
           return parsed.data;
         } else {
-          console.log('Lagrede data er for gamle, bruker initial data');
+          logger.log('Lagrede data er for gamle, bruker initial data');
         }
       }
     } catch (e) {
-      console.error('Kunne ikke parse lagrede formdata:', e);
+      logger.error('Kunne ikke parse lagrede formdata:', e);
     }
 
     return initialData;
@@ -63,7 +64,7 @@ export const useFormPersistence = (initialData: FormData) => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
         setHasSavedData(true);
       } catch (e) {
-        console.error('Kunne ikke lagre formdata til localStorage:', e);
+        logger.error('Kunne ikke lagre formdata til localStorage:', e);
       }
     }, AUTOSAVE_DELAY);
 
@@ -75,9 +76,9 @@ export const useFormPersistence = (initialData: FormData) => {
     try {
       localStorage.removeItem(STORAGE_KEY);
       setHasSavedData(false);
-      console.log('Fjernet lagrede formdata');
+      logger.log('Fjernet lagrede formdata');
     } catch (e) {
-      console.error('Kunne ikke fjerne lagrede formdata:', e);
+      logger.error('Kunne ikke fjerne lagrede formdata:', e);
     }
   };
 

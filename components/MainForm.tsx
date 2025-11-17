@@ -12,6 +12,7 @@ import {
 } from '../services/api.service';
 import { useFormPersistence } from '../hooks/useFormPersistence';
 import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning';
+import { logger } from '../utils/logger';
 
 const MachineModal = lazy(() => import('./MachineModal'));
 
@@ -341,7 +342,7 @@ const MainForm: React.FC = () => {
         applicationId: response.id,
       });
 
-      console.log('✅ Application submitted:', response);
+      logger.log('✅ Application submitted:', response);
 
       // Clear saved data from localStorage
       clearSaved();
@@ -353,7 +354,7 @@ const MainForm: React.FC = () => {
     } catch (error) {
       const apiError = error as APIError;
 
-      console.error('❌ Submission failed:', apiError);
+      logger.error('❌ Submission failed:', apiError);
 
       setSubmissionState({
         status: 'error',
