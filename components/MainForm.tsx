@@ -1,16 +1,19 @@
 // Fix: Removed invalid CDATA wrapper from the file content.
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker, PktStepper, PktStep } from '@oslokommune/punkt-react';
 import type { FormData, Machine } from '../types';
 import { FileUploadField } from './form/Fields';
 import MachineGallery from './MachineGallery';
-import MachineModal from './MachineModal';
 import {
   submitApplicationWithRetry,
   validateBeforeSubmit,
   APIError
 } from '../services/api.service';
+import { useFormPersistence } from '../hooks/useFormPersistence';
+import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning';
+
+const MachineModal = lazy(() => import('./MachineModal'));
 
 /**
  * Submission states
@@ -97,7 +100,9 @@ const initialFormData: FormData = {
 };
 
 const MainForm: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+  // Use custom hooks for form persistence
+  const { formData, setFormData, clearSaved, hasSavedData } = useFormPersistence(initialFormData);
+
   const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
   const [editingMachineId, setEditingMachineId] = useState<string | null>(null);
   const [advisorAttachmentName, setAdvisorAttachmentName] = useState<string | null>(null);
@@ -116,6 +121,10 @@ const MainForm: React.FC = () => {
 
   // Stepper state
   const [activeStep, setActiveStep] = useState<string>('1');
+
+  // Warn about unsaved changes
+  const hasUnsavedChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  useUnsavedChangesWarning(hasUnsavedChanges);
 
   // Refs for scroll-to-section
   const section1Ref = useRef<HTMLFieldSetElement>(null);
@@ -333,6 +342,9 @@ const MainForm: React.FC = () => {
       });
 
       console.log('✅ Application submitted:', response);
+
+      // Clear saved data from localStorage
+      clearSaved();
 
       // Optional: Reset form
       // setFormData(initialFormData);
@@ -877,12 +889,16 @@ const MainForm: React.FC = () => {
       </form>
       </div>
       </div>
-      <MachineModal
-        isOpen={isMachineModalOpen}
-        onClose={handleCloseMachineModal}
-        onSave={handleSaveMachine}
-        machineToEdit={editingMachine || null}
-      />
+      {isMachineModalOpen && (
+        <Suspense fallback={<div>Laster...</div>}>
+          <MachineModal
+            isOpen={isMachineModalOpen}
+            onClose={handleCloseMachineModal}
+            onSave={handleSaveMachine}
+            machineToEdit={editingMachine || null}
+          />
+        </Suspense>
+      )}
     </>
   );
 };
