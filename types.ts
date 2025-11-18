@@ -24,9 +24,7 @@ export interface FormData {
   contractBasis: 'Kontrakt inngått FØR 1. jan 2025' | 'Kontrakt inngått ETTER 1. jan 2025' | '';
 
   // Section 2
-  submittedBy: 'Byggherrens prosjektleder' | 'Totalentreprenør' | '';
   submitterName: string;
-  primaryDriver: 'Teknisk/Markedsmessig hindring' | 'Kostnad' | 'Fremdrift' | '';
   deadline: string;
   applicationType: 'machine' | 'infrastructure' | '';
   isUrgent: boolean;
