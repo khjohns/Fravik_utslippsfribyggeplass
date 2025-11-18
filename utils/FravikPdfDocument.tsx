@@ -179,18 +179,22 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     paddingTop: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   footerText: {
     fontSize: 8,
     color: COLORS.muted,
     fontFamily: 'Helvetica',
   },
+  // ENDRING: Denne stilen har nå posisjonering
   footerPageNumber: {
+    position: 'absolute',
+    bottom: 20,
+    right: 42,
+    paddingTop: 8, // Samme paddingTop som footer for å justere vertikalt
     fontSize: 8,
     color: COLORS.muted,
     fontFamily: 'Helvetica',
+    textAlign: 'right',
   },
   metadataFooter: {
     marginTop: 30,
@@ -218,6 +222,7 @@ const Header: React.FC = () => (
   </View>
 );
 
+// ENDRING: Footer-komponenten gjengir NÅ KUN de statiske delene
 const Footer: React.FC = () => {
   const generatedDate = new Date().toLocaleDateString('no-NO', {
     day: 'numeric',
@@ -230,16 +235,11 @@ const Footer: React.FC = () => {
   });
 
   return (
-    // Denne View-en er 'fixed' og vil dukke opp på hver side
     <View style={styles.footer} fixed>
       <Text style={styles.footerText}>
         {`Generert: ${generatedDate} kl. ${generatedTime}`}
       </Text>
-      <Text
-        style={styles.footerPageNumber}
-        render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`}
-        // FJERNET 'fixed' HERFRA (Dette var den opprinnelige feilen)
-      />
+      {/* Sidetall er fjernet herfra */}
     </View>
   );
 };
@@ -364,16 +364,14 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
       title={`Fraviksøknad - ${data.projectName || 'Uten tittel'}`}
       author="Oslo Kommune"
     >
-      {/* Ved å bruke ETT <Page> element med 'wrap' prop, vil react-pdf
-        automatisk dele opp innholdet over så mange sider som trengs.
-      */}
       <Page size="A4" style={styles.page} wrap>
         <Header />
 
+        {/* Alt innhold som skal brytes over sider plasseres her */}
+        
         {/* Title and urgent badge */}
         <View wrap={false} minPresenceAhead={100}>
           <Text style={styles.title}>{data.projectName || 'Uten tittel'}</Text>
-
           {data.isUrgent && (
             <View style={styles.urgentBadge}>
               <Text style={styles.urgentBadgeText}>HASTEBEHANDLING</Text>
@@ -416,7 +414,6 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
             <TableRow label="Søknadstype" value={getApplicationTypeLabel(data.applicationType)} />
             <TableRow label="Primær driver" value={getPrimaryDriverLabel(data.primaryDriver)} striped />
           </View>
-
           {data.isUrgent && data.urgencyReason && (
             <TextBlock title="Begrunnelse for hastebehandling:" content={data.urgencyReason} />
           )}
@@ -447,7 +444,6 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
           <TextBlock title="Avbøtende tiltak:" content={data.mitigatingMeasures} />
           <TextBlock title="Konsekvenser ved avslag:" content={data.consequencesOfRejection} />
         </View>
-        {/* ^^^ KORRIGERT HER ^^^ */}
 
         {/* Advisor assessment */}
         {data.advisorAssessment && (
@@ -457,17 +453,22 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
           </View>
         )}
 
-        {/* Metadata footer */}
+        {/* Metadata footer (part of content flow, appears at the very end) */}
         <View style={styles.metadataFooter}>
           <Text style={styles.metadataText}>
             Generert av: {data.submitterName || 'Ukjent'} | System: Fraviksøknad - Utslippsfri byggeplass | Oslo Kommune
           </Text>
         </View>
 
-        {/* Footeren er plassert her, men siden den har 'fixed' prop,
-          vil den vises på bunnen av HVER side som genereres av 'wrap'.
-        */}
+        {/* STATISK Footer (linje og dato) */}
         <Footer />
+        
+        {/* DYNAMISK Footer (sidetall) - må være separat */}
+        <Text
+          style={styles.footerPageNumber}
+          render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`}
+          fixed
+        />
       </Page>
     </Document>
   );
