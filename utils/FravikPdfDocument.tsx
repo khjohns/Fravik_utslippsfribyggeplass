@@ -238,7 +238,7 @@ const Footer: React.FC = () => {
       <Text
         style={styles.footerPageNumber}
         render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`}
-        // FJERNET 'fixed' HERFRA
+        // FJERNET 'fixed' HERFRA (Dette var den opprinnelige feilen)
       />
     </View>
   );
@@ -446,7 +446,8 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
           <Text style={styles.mainTitle}>Konsekvenser og avbøtende tiltak</Text>
           <TextBlock title="Avbøtende tiltak:" content={data.mitigatingMeasures} />
           <TextBlock title="Konsekvenser ved avslag:" content={data.consequencesOfRejection} />
-        </Vw>
+        </View>
+        {/* ^^^ KORRIGERT HER ^^^ */}
 
         {/* Advisor assessment */}
         {data.advisorAssessment && (
