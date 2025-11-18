@@ -211,11 +211,11 @@ const Header: React.FC = () => (
 
 const Footer: React.FC = () => (
   <View style={styles.footer} fixed>
-    <Text fixed>
+    <Text>
       Generert: {new Date().toLocaleDateString('no-NO', { day: 'numeric', month: 'long', year: 'numeric' })} kl.{' '}
       {new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })}
     </Text>
-    <Text fixed render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`} />
+    <Text render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`} />
   </View>
 );
 
