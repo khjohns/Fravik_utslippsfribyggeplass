@@ -1,21 +1,9 @@
 import React from 'react';
-import { Document, Page, Text, View, Image, StyleSheet, Font, pdf } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, StyleSheet, pdf } from '@react-pdf/renderer';
 import type { FormData, Machine } from '../types';
 
-// Register Oslo Sans fonts (all variants)
-Font.register({
-  family: 'Oslo Sans',
-  fonts: [
-    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-Light.woff2', fontWeight: 300 },
-    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-LightItalic.woff2', fontWeight: 300, fontStyle: 'italic' },
-    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-Regular.woff2', fontWeight: 'normal' },
-    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-RegularItalic.woff2', fontWeight: 'normal', fontStyle: 'italic' },
-    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-Medium.woff2', fontWeight: 500 },
-    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-MediumItalic.woff2', fontWeight: 500, fontStyle: 'italic' },
-    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-Bold.woff2', fontWeight: 'bold' },
-    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-BoldItalic.woff2', fontWeight: 'bold', fontStyle: 'italic' },
-  ],
-});
+// Note: Oslo Sans fonts require TTF/OTF format for react-pdf
+// Currently using Helvetica as fallback until TTF fonts are available
 
 // Oslo Kommune design system colors
 const COLORS = {
@@ -41,7 +29,7 @@ const styles = StyleSheet.create({
     paddingLeft: 42,
     paddingRight: 42,
     paddingBottom: 60,
-    fontFamily: 'Oslo Sans',
+    fontFamily: 'Helvetica',
     fontSize: 9,
     color: COLORS.ink,
     lineHeight: 1.4,
