@@ -1,11 +1,12 @@
 /**
  * React API Service - Frontend Integration
- * 
+ *
  * Dette servicet håndterer kommunikasjon mellom React-appen og Azure Functions API,
  * inkludert bygging av multipart/form-data payloads og error handling.
  */
 
 import { FormData as AppFormData } from '../types';
+import { logger } from '../utils/logger';
 
 /**
  * API Configuration
@@ -16,7 +17,7 @@ const API_BASE_URL = '/api'; // SWA serves Functions under /api
 const MOCK_API = true; // Sett til false for å prøve ekte API
 
 async function mockSubmit(payload: FormData): Promise<SubmitResponse> {
-  console.log("MOCK SUBMIT:", payload);
+  logger.log("MOCK SUBMIT:", payload);
 
   // Simuler en forsinkelse
   await new Promise(resolve => setTimeout(resolve, 1500));
@@ -168,15 +169,15 @@ export async function submitApplication(
   try {
     // Build multipart payload
     const payload = buildMultipartPayload(formData, files);
-    
-    console.log('Submitting application...');
-    console.log('Project:', formData.projectName);
-    console.log('Type:', formData.applicationType);
-    console.log('Files:', {
+
+    logger.log('Submitting application...');
+    logger.log('Project:', formData.projectName);
+    logger.log('Type:', formData.applicationType);
+    logger.log('Files:', {
       advisorAttachment: !!files.advisorAttachment,
       documentation: files.documentation?.length || 0,
     });
-    
+
     // Send request
     // VIKTIG: Ikke sett Content-Type header manuelt!
     // Browser setter automatisk Content-Type: multipart/form-data med boundary
@@ -200,8 +201,8 @@ export async function submitApplication(
         errorData.applicationId
       );
     }
-    
-    console.log('✅ Submission successful:', data);
+
+    logger.log('✅ Submission successful:', data);
     return data as SubmitResponse;
     
   } catch (error) {
@@ -260,7 +261,7 @@ export async function submitApplicationWithRetry(
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`Submission attempt ${attempt}/${maxRetries}`);
+      logger.log(`Submission attempt ${attempt}/${maxRetries}`);
       return await submitApplication(formData, files);
       
     } catch (error) {
@@ -279,7 +280,7 @@ export async function submitApplicationWithRetry(
       // Wait before retry (with exponential backoff)
       if (attempt < maxRetries) {
         const delay = retryDelay * Math.pow(2, attempt - 1);
-        console.log(`Retrying in ${delay}ms...`);
+        logger.log(`Retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
