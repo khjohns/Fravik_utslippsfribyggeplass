@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 15,
     left: 42,
     right: 42,
     borderTopWidth: 1,
@@ -180,6 +180,8 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  footerText: {
     fontSize: 8,
     color: COLORS.muted,
   },
@@ -211,11 +213,11 @@ const Header: React.FC = () => (
 
 const Footer: React.FC = () => (
   <View style={styles.footer} fixed>
-    <Text>
+    <Text style={styles.footerText}>
       Generert: {new Date().toLocaleDateString('no-NO', { day: 'numeric', month: 'long', year: 'numeric' })} kl.{' '}
       {new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })}
     </Text>
-    <Text render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`} />
+    <Text style={styles.footerText} render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`} />
   </View>
 );
 
