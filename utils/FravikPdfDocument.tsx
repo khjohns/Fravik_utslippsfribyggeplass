@@ -211,11 +211,11 @@ const Header: React.FC = () => (
 
 const Footer: React.FC = () => (
   <View style={styles.footer} fixed>
-    <Text>
+    <Text fixed>
       Generert: {new Date().toLocaleDateString('no-NO', { day: 'numeric', month: 'long', year: 'numeric' })} kl.{' '}
       {new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })}
     </Text>
-    <Text render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`} />
+    <Text fixed render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`} />
   </View>
 );
 
@@ -397,9 +397,13 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
         {/* Machines section */}
         {hasMachines && (
           <View wrap>
-            <Text style={styles.mainTitle} minPresenceAhead={150}>Maskiner ({data.machines.length})</Text>
             {data.machines.map((machine, index) => (
-              <MachineSection key={machine.id} machine={machine} index={index} />
+              <View key={machine.id} wrap={false}>
+                {index === 0 && (
+                  <Text style={styles.mainTitle}>Maskiner det søkes fravik for</Text>
+                )}
+                <MachineSection machine={machine} index={index} />
+              </View>
             ))}
           </View>
         )}
