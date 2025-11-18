@@ -295,42 +295,42 @@ export async function submitApplicationWithRetry(
  */
 export function validateFormData(formData: AppFormData): string[] {
   const errors: string[] = [];
-  
+
   // Required fields
   if (!formData.projectName) {
-    errors.push('Project name is required');
+    errors.push('Prosjektnavn er påkrevd');
   }
   if (!formData.projectNumber) {
-    errors.push('Project number is required');
+    errors.push('Prosjektnummer er påkrevd');
   }
   if (!formData.deadline) {
-    errors.push('Deadline is required');
+    errors.push('Frist for svar er påkrevd');
   }
-  
+
   // Urgent validation
   if (formData.isUrgent && !formData.urgencyReason) {
-    errors.push('Urgency reason is required when marking as urgent');
+    errors.push('Begrunnelse for hastebehandling er påkrevd');
   }
-  
+
   // Machine-specific validation
   if (formData.applicationType === 'machine') {
     if (!formData.machines || formData.machines.length === 0) {
-      errors.push('At least one machine is required for machine applications');
+      errors.push('Minst én maskin er påkrevd for maskinsøknader');
     }
-    
+
     formData.machines?.forEach((machine, index) => {
       if (!machine.type) {
-        errors.push(`Machine ${index + 1}: Type is required`);
+        errors.push(`Maskin ${index + 1}: Maskintype er påkrevd`);
       }
       if (!machine.startDate || !machine.endDate) {
-        errors.push(`Machine ${index + 1}: Start and end dates are required`);
+        errors.push(`Maskin ${index + 1}: Start- og sluttdato er påkrevd`);
       }
       if (machine.reasons.length === 0) {
-        errors.push(`Machine ${index + 1}: At least one reason is required`);
+        errors.push(`Maskin ${index + 1}: Minst én begrunnelse er påkrevd`);
       }
     });
   }
-  
+
   return errors;
 }
 
@@ -355,21 +355,21 @@ export function validateFiles(files: {
   // Validate advisor attachment
   if (files.advisorAttachment) {
     if (files.advisorAttachment.size > MAX_FILE_SIZE) {
-      errors.push(`Advisor attachment is too large (max ${MAX_FILE_SIZE / 1024 / 1024} MB)`);
+      errors.push(`Rådgivervedlegg er for stort (maks ${MAX_FILE_SIZE / 1024 / 1024} MB)`);
     }
     if (!ALLOWED_TYPES.includes(files.advisorAttachment.type)) {
-      errors.push('Advisor attachment must be PDF, Word, or image file');
+      errors.push('Rådgivervedlegg må være PDF, Word eller bildefil');
     }
   }
-  
+
   // Validate documentation
   if (files.documentation) {
     files.documentation.forEach((file, index) => {
       if (file.size > MAX_FILE_SIZE) {
-        errors.push(`Documentation file ${index + 1} is too large`);
+        errors.push(`Dokumentasjonsfil ${index + 1} er for stor`);
       }
       if (!ALLOWED_TYPES.includes(file.type)) {
-        errors.push(`Documentation file ${index + 1} has invalid type`);
+        errors.push(`Dokumentasjonsfil ${index + 1} har ugyldig filtype`);
       }
     });
   }

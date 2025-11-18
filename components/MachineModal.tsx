@@ -289,6 +289,18 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                 onChange={handleFileChange}
                 fileName={documentationName}
               />
+
+              <PktTextarea
+                id="alternativeSolutions"
+                label="Vurdering av alternative løsninger"
+                name="alternativeSolutions"
+                value={machineData.alternativeSolutions}
+                onChange={handleChange}
+                placeholder="Hvilke andre løsninger er vurdert (f.eks. bruk av mindre maskiner, batteribanker, endret metode)? Hvorfor er de ikke valgt?"
+                required
+                fullwidth
+                rows={4}
+              />
             </div>
           </fieldset>
 
@@ -306,19 +318,37 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                     placeholder="Merke, modell, Euro-klasse, etc."
                     required
                 />
-                 <PktSelect
-                    id="replacementFuel"
-                    label="Drivstoff for erstatningsmaskin"
-                    name="replacementFuel"
-                    value={machineData.replacementFuel}
-                    onChange={handleChange}
-                    required
-                 >
-                    <option value="">Velg drivstoff...</option>
-                    <option value="HVO100">HVO100</option>
-                    <option value="Annet biodrivstoff">Annet biodrivstoff</option>
-                    <option value="Diesel (Euro 6)">Diesel (Euro 6)</option>
-                </PktSelect>
+                <div>
+                    <label className="block text-sm font-medium text-ink-dim mb-2">
+                        Drivstoff for erstatningsmaskin <span className="text-warn">*</span>
+                    </label>
+                    <div className="flex flex-col gap-y-2">
+                        <PktRadioButton
+                            id="replacementFuel-hvo"
+                            name="replacementFuel"
+                            value="HVO100"
+                            label="HVO100"
+                            checked={machineData.replacementFuel === 'HVO100'}
+                            onChange={handleChange}
+                        />
+                        <PktRadioButton
+                            id="replacementFuel-bio"
+                            name="replacementFuel"
+                            value="Annet biodrivstoff"
+                            label="Annet biodrivstoff"
+                            checked={machineData.replacementFuel === 'Annet biodrivstoff'}
+                            onChange={handleChange}
+                        />
+                        <PktRadioButton
+                            id="replacementFuel-diesel"
+                            name="replacementFuel"
+                            value="Diesel (Euro 6)"
+                            label="Diesel (Euro 6)"
+                            checked={machineData.replacementFuel === 'Diesel (Euro 6)'}
+                            onChange={handleChange}
+                        />
+                    </div>
+                </div>
               </div>
 
                <PktTextarea
@@ -328,24 +358,6 @@ const MachineModal: React.FC<MachineModalProps> = ({ isOpen, onClose, onSave, ma
                 value={machineData.workDescription}
                 onChange={handleChange}
                 placeholder="Beskriv hva maskinen/kjøretøyet skal brukes til."
-                required
-                fullwidth
-                rows={4}
-              />
-            </div>
-          </fieldset>
-
-          {/* Gruppe 4: Vurderinger */}
-          <fieldset className="bg-card-bg border border-border-color rounded-lg p-6">
-            <legend className="text-lg font-semibold text-pri px-2">Vurderinger</legend>
-            <div className="mt-4">
-              <PktTextarea
-                id="alternativeSolutions"
-                label="Vurdering av alternative løsninger"
-                name="alternativeSolutions"
-                value={machineData.alternativeSolutions}
-                onChange={handleChange}
-                placeholder="Hvilke andre løsninger er vurdert (f.eks. bruk av mindre maskiner, batteribanker, endret metode)? Hvorfor er de ikke valgt?"
                 required
                 fullwidth
                 rows={4}

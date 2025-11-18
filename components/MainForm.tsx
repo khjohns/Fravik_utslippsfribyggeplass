@@ -47,9 +47,7 @@ const exampleData: FormData = {
   projectNumber: 'P12345',
   mainContractor: 'Byggmester AS',
   contractBasis: 'Kontrakt inngått ETTER 1. jan 2025',
-  submittedBy: 'Totalentreprenør',
   submitterName: 'Kari Nordmann',
-  primaryDriver: 'Teknisk/Markedsmessig hindring',
   deadline: '2024-08-15',
   applicationType: 'machine',
   isUrgent: true,
@@ -76,9 +74,7 @@ const initialFormData: FormData = {
   projectNumber: '',
   mainContractor: '',
   contractBasis: '',
-  submittedBy: '',
   submitterName: '',
-  primaryDriver: '',
   deadline: '',
   applicationType: '',
   isUrgent: false,
@@ -621,18 +617,29 @@ const MainForm: React.FC = () => {
                     onChange={handleChange}
                     required
                 />
-                <PktSelect
-                    id="contractBasis"
-                    label="Kontraktsgrunnlag"
-                    name="contractBasis"
-                    value={formData.contractBasis}
-                    onChange={handleChange}
-                    required
-                >
-                    <option value="">Velg...</option>
-                    <option value="Kontrakt inngått FØR 1. jan 2025">Kontrakt inngått FØR 1. jan 2025</option>
-                    <option value="Kontrakt inngått ETTER 1. jan 2025">Kontrakt inngått ETTER 1. jan 2025</option>
-                </PktSelect>
+                <div>
+                    <label className="block text-sm font-medium text-ink-dim mb-2">
+                        Kontraktsgrunnlag <span className="text-warn">*</span>
+                    </label>
+                    <div className="flex flex-col gap-y-2">
+                        <PktRadioButton
+                            id="contractBasis-before"
+                            name="contractBasis"
+                            value="Kontrakt inngått FØR 1. jan 2025"
+                            label="Kontrakt inngått FØR 1. jan 2025"
+                            checked={formData.contractBasis === 'Kontrakt inngått FØR 1. jan 2025'}
+                            onChange={handleChange}
+                        />
+                        <PktRadioButton
+                            id="contractBasis-after"
+                            name="contractBasis"
+                            value="Kontrakt inngått ETTER 1. jan 2025"
+                            label="Kontrakt inngått ETTER 1. jan 2025"
+                            checked={formData.contractBasis === 'Kontrakt inngått ETTER 1. jan 2025'}
+                            onChange={handleChange}
+                        />
+                    </div>
+                </div>
             </div>
         </fieldset>
 
@@ -641,18 +648,6 @@ const MainForm: React.FC = () => {
             <legend id="section-2-heading" className="text-lg font-semibold text-pri px-2">2. Søknadsdetaljer</legend>
             <div className="mt-4 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-                <PktSelect
-                    id="submittedBy"
-                    label="Søknad sendes inn av"
-                    name="submittedBy"
-                    value={formData.submittedBy}
-                    onChange={handleChange}
-                    required
-                >
-                    <option value="">Velg...</option>
-                    <option value="Byggherrens prosjektleder">Byggherrens prosjektleder</option>
-                    <option value="Totalentreprenør">Totalentreprenør</option>
-                </PktSelect>
                 <PktTextinput
                     id="submitterName"
                     label="Navn på innsender"
@@ -661,19 +656,6 @@ const MainForm: React.FC = () => {
                     onChange={handleChange}
                     required
                 />
-                <PktSelect
-                    id="primaryDriver"
-                    label="Hovedårsak for søknad"
-                    name="primaryDriver"
-                    value={formData.primaryDriver}
-                    onChange={handleChange}
-                    required
-                >
-                    <option value="">Velg...</option>
-                    <option value="Teknisk/Markedsmessig hindring">Teknisk/Markedsmessig hindring</option>
-                    <option value="Kostnad">Kostnad</option>
-                    <option value="Fremdrift">Fremdrift</option>
-                </PktSelect>
                 <PktDatepicker
                     id="deadline"
                     label="Frist for svar på søknad"
@@ -708,13 +690,16 @@ const MainForm: React.FC = () => {
                 </div>
             </div>
             <div className="mt-6 pt-6 border-t border-border-color">
-                <PktCheckbox
-                    id="isUrgent"
-                    name="isUrgent"
-                    label="Akutt behov / Søknad sendes etter oppstart eller nært oppstart"
-                    checked={formData.isUrgent}
-                    onChange={handleChange}
-                />
+                <div>
+                    <PktCheckbox
+                        id="isUrgent"
+                        name="isUrgent"
+                        label="Akutt behov"
+                        checked={formData.isUrgent}
+                        onChange={handleChange}
+                    />
+                    <p className="mt-1 ml-7 text-sm text-ink-dim">Gjelder søknader som sendes etter eller nært oppstart</p>
+                </div>
                 <div className={`transition-all duration-500 ease-in-out overflow-hidden ${formData.isUrgent ? 'max-h-96 mt-4' : 'max-h-0'}`}>
                     <PktTextarea
                         id="urgencyReason"
@@ -764,17 +749,20 @@ const MainForm: React.FC = () => {
                   {/* Section 3B */}
                   {formData.applicationType === 'infrastructure' && (
                       <div className="space-y-6">
-                          <PktTextarea
-                              id="powerAccessDescription"
-                              label="Beskriv utfordringer med strømtilgang på byggeplassen"
-                              name="powerAccessDescription"
-                              value={formData.infrastructure.powerAccessDescription}
-                              onChange={handleInfraTextChange}
-                              placeholder="Beskriv kartlagt situasjon. Hvor er nærmeste tilkoblingspunkt? Hva er tilgjengelig elektrisk effekt (kW/kVA)?"
-                              required
-                              fullwidth
-                              rows={4}
-                          />
+                          <div>
+                              <PktTextarea
+                                  id="powerAccessDescription"
+                                  label="Beskriv utfordringer med strømtilgang på byggeplassen"
+                                  name="powerAccessDescription"
+                                  value={formData.infrastructure.powerAccessDescription}
+                                  onChange={handleInfraTextChange}
+                                  placeholder="Beskriv den kartlagte situasjonen..."
+                                  required
+                                  fullwidth
+                                  rows={4}
+                              />
+                              <p className="mt-1 text-sm text-ink-dim">Hvor er nærmeste tilkoblingspunkt? Hva er tilgjengelig elektrisk effekt (kW/kVA)?</p>
+                          </div>
                           <PktTextarea
                               id="infrastructureReplacement"
                               label="Beskriv erstatningsløsning"
@@ -790,7 +778,7 @@ const MainForm: React.FC = () => {
                             <label className="block text-sm font-medium text-ink-dim mb-2">
                                 Alternative løsninger som er vurdert:
                             </label>
-                            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                            <div className="mt-2 flex flex-col gap-y-2">
                                 <PktCheckbox
                                     id="mobileBatteryConsidered"
                                     name="mobileBatteryConsidered"
@@ -828,17 +816,20 @@ const MainForm: React.FC = () => {
                               fullwidth
                               rows={4}
                           />
-                          <PktTextarea
-                              id="costAssessment"
-                              label="Vurdering av kostnader for alternative løsninger"
-                              name="costAssessment"
-                              value={formData.infrastructure.costAssessment}
-                              onChange={handleInfraTextChange}
-                              placeholder="Vær konkret. Er merkostnaden for utslippsfri drift >10% av prosjektkostnaden?"
-                              required
-                              fullwidth
-                              rows={4}
-                          />
+                          <div>
+                              <PktTextarea
+                                  id="costAssessment"
+                                  label="Vurdering av kostnader for alternative løsninger"
+                                  name="costAssessment"
+                                  value={formData.infrastructure.costAssessment}
+                                  onChange={handleInfraTextChange}
+                                  placeholder="Beskriv kostnadsvurderingen..."
+                                  required
+                                  fullwidth
+                                  rows={4}
+                              />
+                              <p className="mt-1 text-sm text-ink-dim">Er merkostnaden for utslippsfri drift &gt;10% av prosjektkostnaden? Vær konkret med tall og estimater.</p>
+                          </div>
                       </div>
                   )}
                   </div>
@@ -862,17 +853,20 @@ const MainForm: React.FC = () => {
                     rows={4}
                     fullwidth
                 />
-                <PktTextarea
-                    id="consequencesOfRejection"
-                    label="Hva er konsekvensene dersom søknaden IKKE innvilges?"
-                    name="consequencesOfRejection"
-                    value={formData.consequencesOfRejection}
-                    onChange={handleChange}
-                    placeholder="Beskriv konsekvenser for fremdrift, kostnader, og teknisk gjennomførbarhet."
-                    required
-                    rows={4}
-                    fullwidth
-                />
+                <div>
+                    <PktTextarea
+                        id="consequencesOfRejection"
+                        label="Hva er konsekvensene dersom søknaden IKKE innvilges?"
+                        name="consequencesOfRejection"
+                        value={formData.consequencesOfRejection}
+                        onChange={handleChange}
+                        placeholder="Beskriv konsekvensene..."
+                        required
+                        rows={4}
+                        fullwidth
+                    />
+                    <p className="mt-1 text-sm text-ink-dim">Beskriv konsekvenser for fremdrift, kostnader, og teknisk gjennomførbarhet.</p>
+                </div>
             </div>
         </fieldset>
 
