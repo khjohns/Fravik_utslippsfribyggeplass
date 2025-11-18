@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     paddingTop: 100, // Space for fixed header
     paddingLeft: 42,
     paddingRight: 42,
-    paddingBottom: 60,
+    paddingBottom: 60, // Space for fixed footer
     fontFamily: 'Helvetica',
     fontSize: 9,
     color: COLORS.ink,
@@ -230,6 +230,7 @@ const Footer: React.FC = () => {
   });
 
   return (
+    // Denne View-en er 'fixed' og vil dukke opp på hver side
     <View style={styles.footer} fixed>
       <Text style={styles.footerText}>
         {`Generert: ${generatedDate} kl. ${generatedTime}`}
@@ -237,7 +238,7 @@ const Footer: React.FC = () => {
       <Text
         style={styles.footerPageNumber}
         render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`}
-        fixed
+        // FJERNET 'fixed' HERFRA
       />
     </View>
   );
@@ -363,6 +364,9 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
       title={`Fraviksøknad - ${data.projectName || 'Uten tittel'}`}
       author="Oslo Kommune"
     >
+      {/* Ved å bruke ETT <Page> element med 'wrap' prop, vil react-pdf
+        automatisk dele opp innholdet over så mange sider som trengs.
+      */}
       <Page size="A4" style={styles.page} wrap>
         <Header />
 
@@ -442,7 +446,7 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
           <Text style={styles.mainTitle}>Konsekvenser og avbøtende tiltak</Text>
           <TextBlock title="Avbøtende tiltak:" content={data.mitigatingMeasures} />
           <TextBlock title="Konsekvenser ved avslag:" content={data.consequencesOfRejection} />
-        </View>
+        </Vw>
 
         {/* Advisor assessment */}
         {data.advisorAssessment && (
@@ -459,6 +463,9 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
           </Text>
         </View>
 
+        {/* Footeren er plassert her, men siden den har 'fixed' prop,
+          vil den vises på bunnen av HVER side som genereres av 'wrap'.
+        */}
         <Footer />
       </Page>
     </Document>
