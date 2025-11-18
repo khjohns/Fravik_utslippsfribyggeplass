@@ -12,6 +12,7 @@ import {
 } from '../services/api.service';
 import { useFormPersistence, useUnsavedChangesWarning } from '../hooks';
 import { logger } from '../utils/logger';
+import { generateFravikPdf } from '../utils/FravikPdfDocument';
 
 const MachineModal = lazy(() => import('./MachineModal'));
 
@@ -108,6 +109,7 @@ const MainForm: React.FC = () => {
   const [advisorAttachmentName, setAdvisorAttachmentName] = useState<string | null>(null);
   const [advisorValidationError, setAdvisorValidationError] = useState<string | null>(null);
   const [isLoadingExample, setIsLoadingExample] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // File state
   const [files, setFiles] = useState<{
@@ -263,6 +265,18 @@ const MainForm: React.FC = () => {
       setAdvisorValidationError(null);
     }
   }, []);
+
+  const handleGeneratePdf = useCallback(async () => {
+    setIsGeneratingPdf(true);
+    try {
+      await generateFravikPdf(formData);
+    } catch (error) {
+      logger.error('PDF generation failed:', error);
+      alert('Kunne ikke generere PDF. Vennligst prøv igjen.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [formData]);
 
   const handleOpenMachineModal = useCallback((id?: string) => {
     setEditingMachineId(id || null);
@@ -923,6 +937,17 @@ const MainForm: React.FC = () => {
                     aria-busy={isLoadingExample}
                 >
                     {isLoadingExample ? 'Laster...' : 'Fyll med eksempeldata'}
+                </PktButton>
+                <PktButton
+                    type="button"
+                    onClick={handleGeneratePdf}
+                    skin="secondary"
+                    size="medium"
+                    className="w-full sm:w-auto"
+                    disabled={isGeneratingPdf}
+                    aria-busy={isGeneratingPdf}
+                >
+                    {isGeneratingPdf ? 'Genererer...' : 'PDF'}
                 </PktButton>
                  <PktButton
                     type="button"
