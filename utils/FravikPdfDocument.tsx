@@ -1,6 +1,21 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, StyleSheet, Font, pdf } from '@react-pdf/renderer';
 import type { FormData, Machine } from '../types';
+
+// Register Oslo Sans fonts (all variants)
+Font.register({
+  family: 'Oslo Sans',
+  fonts: [
+    { src: '/fonts/OsloSans-Light.woff2', fontWeight: 300 },
+    { src: '/fonts/OsloSans-LightItalic.woff2', fontWeight: 300, fontStyle: 'italic' },
+    { src: '/fonts/OsloSans-Regular.woff2', fontWeight: 'normal' },
+    { src: '/fonts/OsloSans-RegularItalic.woff2', fontWeight: 'normal', fontStyle: 'italic' },
+    { src: '/fonts/OsloSans-Medium.woff2', fontWeight: 500 },
+    { src: '/fonts/OsloSans-MediumItalic.woff2', fontWeight: 500, fontStyle: 'italic' },
+    { src: '/fonts/OsloSans-Bold.woff2', fontWeight: 'bold' },
+    { src: '/fonts/OsloSans-BoldItalic.woff2', fontWeight: 'bold', fontStyle: 'italic' },
+  ],
+});
 
 // Oslo Kommune design system colors
 const COLORS = {
@@ -26,29 +41,38 @@ const styles = StyleSheet.create({
     paddingLeft: 42,
     paddingRight: 42,
     paddingBottom: 60,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Oslo Sans',
     fontSize: 9,
     color: COLORS.ink,
     lineHeight: 1.4,
   },
   header: {
     backgroundColor: COLORS.primary,
-    paddingTop: 15,
-    paddingBottom: 15,
+    paddingTop: 12,
+    paddingBottom: 12,
     paddingLeft: 42,
     paddingRight: 42,
     marginBottom: 25,
     marginLeft: -42,
     marginRight: -42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerContent: {
+    // Text content on the left
+  },
+  headerLogo: {
+    height: 60,
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   headerSubtitle: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#FFFFFF',
   },
   title: {
@@ -185,20 +209,24 @@ const styles = StyleSheet.create({
 // Helper components
 const Header: React.FC = () => (
   <View style={styles.header}>
-    <Text style={styles.headerTitle}>Fraviksøknad - Utslippsfri byggeplass</Text>
-    <Text style={styles.headerSubtitle}>Oslo Kommune</Text>
+    <View style={styles.headerContent}>
+      <Text style={styles.headerTitle}>Fraviksøknad - Utslippsfri byggeplass</Text>
+      <Text style={styles.headerSubtitle}>Oslo Kommune</Text>
+    </View>
+    <Image
+      src="/logos/Oslo-logo-hvit-RGB.png"
+      style={styles.headerLogo}
+    />
   </View>
 );
 
-const Footer: React.FC<{ pageNumber: number; totalPages: number }> = ({ pageNumber, totalPages }) => (
+const Footer: React.FC = () => (
   <View style={styles.footer} fixed>
     <Text>
       Generert: {new Date().toLocaleDateString('no-NO', { day: 'numeric', month: 'long', year: 'numeric' })} kl.{' '}
       {new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })}
     </Text>
-    <Text>
-      Side {pageNumber} av {totalPages}
-    </Text>
+    <Text render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`} />
   </View>
 );
 
@@ -317,28 +345,27 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
   const hasMachines = data.applicationType === 'machine' && data.machines.length > 0;
   const hasInfrastructure = data.applicationType === 'infrastructure';
 
-  // Calculate total pages: 1 main + machine pages if needed
-  const totalPages = 1 + (hasMachines && data.machines.length > 3 ? 1 : 0);
-
   return (
     <Document
       title={`Fraviksøknad - ${data.projectName || 'Uten tittel'}`}
       author="Oslo Kommune"
     >
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={styles.page} wrap>
         <Header />
 
         {/* Title and urgent badge */}
-        <Text style={styles.title}>{data.projectName || 'Uten tittel'}</Text>
+        <View wrap={false} minPresenceAhead={100}>
+          <Text style={styles.title}>{data.projectName || 'Uten tittel'}</Text>
 
-        {data.isUrgent && (
-          <View style={styles.urgentBadge}>
-            <Text style={styles.urgentBadgeText}>HASTEBEHANDLING</Text>
-          </View>
-        )}
+          {data.isUrgent && (
+            <View style={styles.urgentBadge}>
+              <Text style={styles.urgentBadgeText}>HASTEBEHANDLING</Text>
+            </View>
+          )}
+        </View>
 
         {/* Project info box */}
-        <View style={styles.infoBox}>
+        <View style={styles.infoBox} wrap={false} minPresenceAhead={80}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Prosjektnummer:</Text>
             <Text style={styles.infoValue}>{data.projectNumber || '—'}</Text>
@@ -366,19 +393,21 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
         </View>
 
         {/* Application details */}
-        <Text style={styles.mainTitle}>Søknadsdetaljer</Text>
-        <View style={styles.table}>
-          <TableRow label="Søknadstype" value={getApplicationTypeLabel(data.applicationType)} />
-          <TableRow label="Primær driver" value={getPrimaryDriverLabel(data.primaryDriver)} striped />
-        </View>
+        <View wrap minPresenceAhead={80}>
+          <Text style={styles.mainTitle}>Søknadsdetaljer</Text>
+          <View style={styles.table}>
+            <TableRow label="Søknadstype" value={getApplicationTypeLabel(data.applicationType)} />
+            <TableRow label="Primær driver" value={getPrimaryDriverLabel(data.primaryDriver)} striped />
+          </View>
 
-        {data.isUrgent && data.urgencyReason && (
-          <TextBlock title="Begrunnelse for hastebehandling:" content={data.urgencyReason} />
-        )}
+          {data.isUrgent && data.urgencyReason && (
+            <TextBlock title="Begrunnelse for hastebehandling:" content={data.urgencyReason} />
+          )}
+        </View>
 
         {/* Machines section */}
         {hasMachines && (
-          <View>
+          <View wrap>
             <Text style={styles.mainTitle}>Maskiner ({data.machines.length})</Text>
             {data.machines.map((machine, index) => (
               <MachineSection key={machine.id} machine={machine} index={index} />
@@ -392,13 +421,15 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
         )}
 
         {/* Consequences section */}
-        <Text style={styles.mainTitle}>Konsekvenser og avbøtende tiltak</Text>
-        <TextBlock title="Avbøtende tiltak:" content={data.mitigatingMeasures} />
-        <TextBlock title="Konsekvenser ved avslag:" content={data.consequencesOfRejection} />
+        <View wrap minPresenceAhead={80}>
+          <Text style={styles.mainTitle}>Konsekvenser og avbøtende tiltak</Text>
+          <TextBlock title="Avbøtende tiltak:" content={data.mitigatingMeasures} />
+          <TextBlock title="Konsekvenser ved avslag:" content={data.consequencesOfRejection} />
+        </View>
 
         {/* Advisor assessment */}
         {data.advisorAssessment && (
-          <View>
+          <View wrap={false} minPresenceAhead={60}>
             <Text style={styles.mainTitle}>Rådgivervurdering</Text>
             <TextBlock title="Vurdering fra rådgiver:" content={data.advisorAssessment} />
           </View>
@@ -411,7 +442,7 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
           </Text>
         </View>
 
-        <Footer pageNumber={1} totalPages={totalPages} />
+        <Footer />
       </Page>
     </Document>
   );
