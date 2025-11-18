@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 15,
+    bottom: 20,
     left: 42,
     right: 42,
     borderTopWidth: 1,
@@ -180,10 +180,17 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   footerText: {
     fontSize: 8,
     color: COLORS.muted,
+    fontFamily: 'Helvetica',
+  },
+  footerPageNumber: {
+    fontSize: 8,
+    color: COLORS.muted,
+    fontFamily: 'Helvetica',
   },
   metadataFooter: {
     marginTop: 30,
@@ -211,15 +218,30 @@ const Header: React.FC = () => (
   </View>
 );
 
-const Footer: React.FC = () => (
-  <View style={styles.footer} fixed>
-    <Text style={styles.footerText}>
-      Generert: {new Date().toLocaleDateString('no-NO', { day: 'numeric', month: 'long', year: 'numeric' })} kl.{' '}
-      {new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })}
-    </Text>
-    <Text style={styles.footerText} render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`} />
-  </View>
-);
+const Footer: React.FC = () => {
+  const generatedDate = new Date().toLocaleDateString('no-NO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+  const generatedTime = new Date().toLocaleTimeString('no-NO', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  return (
+    <View style={styles.footer} fixed>
+      <Text style={styles.footerText}>
+        {`Generert: ${generatedDate} kl. ${generatedTime}`}
+      </Text>
+      <Text
+        style={styles.footerPageNumber}
+        render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`}
+        fixed
+      />
+    </View>
+  );
+};
 
 const TableRow: React.FC<{ label: string; value: string; striped?: boolean }> = ({ label, value, striped }) => (
   <View style={[styles.tableRow, striped && styles.tableRowStriped]}>
