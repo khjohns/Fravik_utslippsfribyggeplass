@@ -1,5 +1,5 @@
 import React, { useState, useEffect, FormEvent, useRef } from 'react';
-import { PktButton, PktTextinput, PktSelect, PktTextarea, PktCheckbox, PktDatepicker } from '@oslokommune/punkt-react';
+import { PktButton, PktTextinput, PktSelect, PktTextarea, PktCheckbox, PktDatepicker, PktRadioButton } from '@oslokommune/punkt-react';
 import type { Machine } from '../types';
 import { FileUploadField } from './form/Fields';
 
