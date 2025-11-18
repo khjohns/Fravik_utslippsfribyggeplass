@@ -170,7 +170,8 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     marginBottom: 8,
   },
-  footer: {
+  // Footer Left: Inneholder linjen og datoteksten
+  footerLeft: {
     position: 'absolute',
     bottom: 20,
     left: 42,
@@ -179,19 +180,22 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     paddingTop: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between', // Sikrer at dato er venstre, sidetall høyre
-    alignItems: 'center',
+    justifyContent: 'flex-start', // Venstrejustert
+  },
+  // Footer Right: Inneholder sidetallet, lagt "oppå" footerLeft
+  footerRight: {
+    position: 'absolute',
+    bottom: 20,
+    left: 42,
+    right: 42,
+    paddingTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'flex-end', // Høyrejustert
   },
   footerText: {
     fontSize: 8,
     color: COLORS.muted,
     fontFamily: 'Helvetica',
-  },
-  footerPageNumber: {
-    fontSize: 8,
-    color: COLORS.muted,
-    fontFamily: 'Helvetica',
-    // Ingen absolutt posisjonering her lenger, styres av flexbox i footer
   },
   metadataFooter: {
     marginTop: 30,
@@ -219,34 +223,35 @@ const Header: React.FC = () => (
   </View>
 );
 
-// KORRIGERT FOOTER: Bruker render-prop på View-nivå for å få tilgang til sidetall
-const Footer: React.FC = () => (
-  <View 
-    style={styles.footer} 
-    fixed 
-    render={({ pageNumber, totalPages }) => {
-      const generatedDate = new Date().toLocaleDateString('no-NO', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-      const generatedTime = new Date().toLocaleTimeString('no-NO', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+// Footer del 1: Statisk innhold (Dato og linje)
+const FooterStatic: React.FC = () => {
+  const generatedDate = new Date().toLocaleDateString('no-NO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+  const generatedTime = new Date().toLocaleTimeString('no-NO', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 
-      return (
-        <>
-          <Text style={styles.footerText}>
-            {`Generert: ${generatedDate} kl. ${generatedTime}`}
-          </Text>
-          <Text style={styles.footerPageNumber}>
-            {`Side ${pageNumber} av ${totalPages}`}
-          </Text>
-        </>
-      );
-    }}
-  />
+  return (
+    <View style={styles.footerLeft} fixed>
+      <Text style={styles.footerText}>
+        {`Generert: ${generatedDate} kl. ${generatedTime}`}
+      </Text>
+    </View>
+  );
+};
+
+// Footer del 2: Dynamisk innhold (Sidetall) - Egen komponent for å isolere logikken
+const FooterPageNumber: React.FC = () => (
+  <View style={styles.footerRight} fixed>
+    <Text
+      style={styles.footerText}
+      render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`}
+    />
+  </View>
 );
 
 const TableRow: React.FC<{ label: string; value: string; striped?: boolean }> = ({ label, value, striped }) => (
@@ -369,6 +374,9 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
       title={`Fraviksøknad - ${data.projectName || 'Uten tittel'}`}
       author="Oslo Kommune"
     >
+      {/* Ved å bruke ETT <Page> element med 'wrap' prop, vil react-pdf
+        automatisk dele opp innholdet over så mange sider som trengs.
+      */}
       <Page size="A4" style={styles.page} wrap>
         <Header />
 
@@ -465,7 +473,12 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
           </Text>
         </View>
 
-        <Footer />
+        {/* VIKTIG: Vi bruker to separate footere som ligger "oppå" hverandre (absolute positioning).
+            Dette unngår en konflikt i react-pdf når man bruker wrap + fixed + render-props i samme komponent.
+        */}
+        <FooterStatic />
+        <FooterPageNumber />
+        
       </Page>
     </Document>
   );
