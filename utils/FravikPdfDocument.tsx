@@ -6,14 +6,14 @@ import type { FormData, Machine } from '../types';
 Font.register({
   family: 'Oslo Sans',
   fonts: [
-    { src: '/fonts/OsloSans-Light.woff2', fontWeight: 300 },
-    { src: '/fonts/OsloSans-LightItalic.woff2', fontWeight: 300, fontStyle: 'italic' },
-    { src: '/fonts/OsloSans-Regular.woff2', fontWeight: 'normal' },
-    { src: '/fonts/OsloSans-RegularItalic.woff2', fontWeight: 'normal', fontStyle: 'italic' },
-    { src: '/fonts/OsloSans-Medium.woff2', fontWeight: 500 },
-    { src: '/fonts/OsloSans-MediumItalic.woff2', fontWeight: 500, fontStyle: 'italic' },
-    { src: '/fonts/OsloSans-Bold.woff2', fontWeight: 'bold' },
-    { src: '/fonts/OsloSans-BoldItalic.woff2', fontWeight: 'bold', fontStyle: 'italic' },
+    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-Light.woff2', fontWeight: 300 },
+    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-LightItalic.woff2', fontWeight: 300, fontStyle: 'italic' },
+    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-Regular.woff2', fontWeight: 'normal' },
+    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-RegularItalic.woff2', fontWeight: 'normal', fontStyle: 'italic' },
+    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-Medium.woff2', fontWeight: 500 },
+    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-MediumItalic.woff2', fontWeight: 500, fontStyle: 'italic' },
+    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-Bold.woff2', fontWeight: 'bold' },
+    { src: '/Fravik_utslippsfribyggeplass/fonts/OsloSans-BoldItalic.woff2', fontWeight: 'bold', fontStyle: 'italic' },
   ],
 });
 
@@ -214,7 +214,7 @@ const Header: React.FC = () => (
       <Text style={styles.headerSubtitle}>Oslo Kommune</Text>
     </View>
     <Image
-      src="/logos/Oslo-logo-hvit-RGB.png"
+      src="/Fravik_utslippsfribyggeplass/logos/Oslo-logo-hvit-RGB.png"
       style={styles.headerLogo}
     />
   </View>
