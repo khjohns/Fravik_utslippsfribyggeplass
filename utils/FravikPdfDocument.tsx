@@ -170,6 +170,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     marginBottom: 8,
   },
+  // Style for den statiske delen av footeren (dato og linje)
   footer: {
     position: 'absolute',
     bottom: 20,
@@ -179,22 +180,25 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     paddingTop: 8,
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   footerText: {
     fontSize: 8,
     color: COLORS.muted,
     fontFamily: 'Helvetica',
   },
-  // ENDRING: Denne stilen har nå posisjonering
+  // Style for den dynamiske delen (sidetall) - nå posisjonert uavhengig
   footerPageNumber: {
     position: 'absolute',
     bottom: 20,
+    left: 42,
     right: 42,
-    paddingTop: 8, // Samme paddingTop som footer for å justere vertikalt
+    textAlign: 'right',
+    paddingTop: 8, // Samme padding som footer for å matche linjen
     fontSize: 8,
     color: COLORS.muted,
     fontFamily: 'Helvetica',
-    textAlign: 'right',
   },
   metadataFooter: {
     marginTop: 30,
@@ -222,7 +226,7 @@ const Header: React.FC = () => (
   </View>
 );
 
-// ENDRING: Footer-komponenten gjengir NÅ KUN de statiske delene
+// Footer inneholder nå KUN den statiske teksten (dato) og linjen
 const Footer: React.FC = () => {
   const generatedDate = new Date().toLocaleDateString('no-NO', {
     day: 'numeric',
@@ -239,7 +243,6 @@ const Footer: React.FC = () => {
       <Text style={styles.footerText}>
         {`Generert: ${generatedDate} kl. ${generatedTime}`}
       </Text>
-      {/* Sidetall er fjernet herfra */}
     </View>
   );
 };
@@ -364,14 +367,16 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
       title={`Fraviksøknad - ${data.projectName || 'Uten tittel'}`}
       author="Oslo Kommune"
     >
+      {/* Ved å bruke ETT <Page> element med 'wrap' prop, vil react-pdf
+        automatisk dele opp innholdet over så mange sider som trengs.
+      */}
       <Page size="A4" style={styles.page} wrap>
         <Header />
 
-        {/* Alt innhold som skal brytes over sider plasseres her */}
-        
         {/* Title and urgent badge */}
         <View wrap={false} minPresenceAhead={100}>
           <Text style={styles.title}>{data.projectName || 'Uten tittel'}</Text>
+
           {data.isUrgent && (
             <View style={styles.urgentBadge}>
               <Text style={styles.urgentBadgeText}>HASTEBEHANDLING</Text>
@@ -414,6 +419,7 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
             <TableRow label="Søknadstype" value={getApplicationTypeLabel(data.applicationType)} />
             <TableRow label="Primær driver" value={getPrimaryDriverLabel(data.primaryDriver)} striped />
           </View>
+
           {data.isUrgent && data.urgencyReason && (
             <TextBlock title="Begrunnelse for hastebehandling:" content={data.urgencyReason} />
           )}
@@ -453,17 +459,19 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
           </View>
         )}
 
-        {/* Metadata footer (part of content flow, appears at the very end) */}
+        {/* Metadata footer */}
         <View style={styles.metadataFooter}>
           <Text style={styles.metadataText}>
             Generert av: {data.submitterName || 'Ukjent'} | System: Fraviksøknad - Utslippsfri byggeplass | Oslo Kommune
           </Text>
         </View>
 
-        {/* STATISK Footer (linje og dato) */}
+        {/* VIKTIG: Footer og sidetall må være separert for å fungere med wrap.
+          Footer: Inneholder dato og linjen (fixed View).
+          Text: Inneholder sidetallet (fixed Text med render prop).
+        */}
         <Footer />
-        
-        {/* DYNAMISK Footer (sidetall) - må være separat */}
+
         <Text
           style={styles.footerPageNumber}
           render={({ pageNumber, totalPages }) => `Side ${pageNumber} av ${totalPages}`}
