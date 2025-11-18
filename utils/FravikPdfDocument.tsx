@@ -25,7 +25,7 @@ const COLORS = {
 // Stylesheet
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 0,
+    paddingTop: 100, // Space for fixed header
     paddingLeft: 42,
     paddingRight: 42,
     paddingBottom: 60,
@@ -35,14 +35,15 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
   },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     backgroundColor: COLORS.primary,
     paddingTop: 12,
     paddingBottom: 12,
     paddingLeft: 42,
     paddingRight: 42,
-    marginBottom: 25,
-    marginLeft: -42,
-    marginRight: -42,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
 
 // Helper components
 const Header: React.FC = () => (
-  <View style={styles.header}>
+  <View style={styles.header} fixed>
     <View style={styles.headerContent}>
       <Text style={styles.headerTitle}>Fraviksøknad - Utslippsfri byggeplass</Text>
       <Text style={styles.headerSubtitle}>Oslo Kommune</Text>
@@ -396,7 +397,7 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
         {/* Machines section */}
         {hasMachines && (
           <View wrap>
-            <Text style={styles.mainTitle}>Maskiner ({data.machines.length})</Text>
+            <Text style={styles.mainTitle} minPresenceAhead={150}>Maskiner ({data.machines.length})</Text>
             {data.machines.map((machine, index) => (
               <MachineSection key={machine.id} machine={machine} index={index} />
             ))}
