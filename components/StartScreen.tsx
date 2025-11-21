@@ -2,7 +2,7 @@ import React from 'react';
 import { PktButton } from '@oslokommune/punkt-react';
 
 interface StartScreenProps {
-  onStart: () => void;
+  onStart: (applicationType: 'machine' | 'infrastructure') => void;
 }
 
 const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
@@ -37,16 +37,44 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
       <p className="text-sm text-muted italic mt-6 text-center">
         Ufullstendige søknader vil medføre lengre behandlingstid. Normal behandlingstid er ca. 10 virkedager.
       </p>
-      
-      <div className="text-center mt-8">
-        <PktButton
-          onClick={onStart}
-          skin="primary"
-          size="medium"
-          type="button"
-        >
-          Start ny søknad
-        </PktButton>
+
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-ink mb-4 text-center">Velg din rolle:</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Option 1: For contractor/supplier */}
+          <div className="bg-white border border-border-color rounded-lg p-6 hover:border-pri hover:shadow-md transition-all">
+            <h3 className="text-md font-semibold text-pri mb-3">For entreprenør / leverandør</h3>
+            <p className="text-sm text-ink-dim mb-4">
+              Du er entreprenør eller leverandør og skal søke om fravik for spesifikke maskiner eller kjøretøy.
+            </p>
+            <PktButton
+              onClick={() => onStart('machine')}
+              skin="primary"
+              size="medium"
+              type="button"
+              className="w-full"
+            >
+              Start søknad
+            </PktButton>
+          </div>
+
+          {/* Option 2: For project leader (Internal) */}
+          <div className="bg-white border border-border-color rounded-lg p-6 hover:border-pri hover:shadow-md transition-all">
+            <h3 className="text-md font-semibold text-pri mb-3">For prosjektleder (Intern)</h3>
+            <p className="text-sm text-ink-dim mb-4">
+              Du er prosjektleder hos Oslobygg KF og skal søke om fravik for elektrisk infrastruktur.
+            </p>
+            <PktButton
+              onClick={() => onStart('infrastructure')}
+              skin="primary"
+              size="medium"
+              type="button"
+              className="w-full"
+            >
+              Start søknad
+            </PktButton>
+          </div>
+        </div>
       </div>
     </div>
   );

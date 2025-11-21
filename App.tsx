@@ -1,6 +1,7 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { PktHeader } from '@oslokommune/punkt-react';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import type { SubmissionMeta } from './types';
 
 const StartScreen = lazy(() => import('./components/StartScreen'));
 const MainForm = lazy(() => import('./components/MainForm'));
@@ -16,8 +17,37 @@ const LoadingSpinner: React.FC = () => (
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('start');
+  const [submissionContext, setSubmissionContext] = useState<SubmissionMeta>({
+    source: 'standalone'
+  });
+  const [initialApplicationType, setInitialApplicationType] = useState<'machine' | 'infrastructure' | ''>('');
 
-  const handleStartApplication = () => {
+  // Parse URL parameters on mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const source = searchParams.get('source');
+    const caseId = searchParams.get('caseId');
+    const projectId = searchParams.get('projectId');
+
+    if (source === 'catenda' && caseId) {
+      // Catenda integration mode: skip StartScreen
+      setSubmissionContext({
+        source: 'catenda',
+        externalCaseId: caseId,
+        projectId: projectId || undefined,
+        originUrl: window.location.href
+      });
+      setAppState('form');
+    } else {
+      // Standalone mode: show StartScreen
+      setSubmissionContext({
+        source: 'standalone'
+      });
+    }
+  }, []);
+
+  const handleStartApplication = (applicationType: 'machine' | 'infrastructure') => {
+    setInitialApplicationType(applicationType);
     setAppState('form');
   };
 
@@ -38,7 +68,12 @@ const App: React.FC = () => {
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <Suspense fallback={<LoadingSpinner />}>
               {appState === 'start' && <StartScreen onStart={handleStartApplication} />}
-              {appState === 'form' && <MainForm />}
+              {appState === 'form' && (
+                <MainForm
+                  submissionContext={submissionContext}
+                  initialApplicationType={initialApplicationType}
+                />
+              )}
             </Suspense>
           </div>
         </main>
