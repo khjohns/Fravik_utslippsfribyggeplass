@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Oslo Sans font declarations */
 @font-face {
   font-family: 'Oslo Sans';
   src: url('/Fravik_utslippsfribyggeplass/fonts/OsloSans-Regular.woff2') format('woff2');
@@ -64,6 +65,7 @@
   font-display: swap;
 }
 
+/* Tailwind v4 theme configuration */
 @theme {
     --color-pri: #1F42AA;
     --color-pri-600: #193587;
@@ -80,6 +82,7 @@
     --font-sans: 'Oslo Sans', system-ui, -apple-system, arial, sans-serif;
 }
 
+/* Force Oslo Sans to override punkt-css */
 body {
     font-family: 'Oslo Sans', system-ui, -apple-system, arial, sans-serif !important;
     -webkit-font-smoothing: antialiased;
