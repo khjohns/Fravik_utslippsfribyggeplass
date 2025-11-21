@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Oslo Sans';
+  src: url('/Fravik_utslippsfribyggeplass/fonts/OsloSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Oslo Sans';
+  src: url('/Fravik_utslippsfribyggeplass/fonts/OsloSans-RegularItalic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Oslo Sans';
+  src: url('/Fravik_utslippsfribyggeplass/fonts/OsloSans-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Oslo Sans';
+  src: url('/Fravik_utslippsfribyggeplass/fonts/OsloSans-MediumItalic.woff2') format('woff2');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Oslo Sans';
+  src: url('/Fravik_utslippsfribyggeplass/fonts/OsloSans-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Oslo Sans';
+  src: url('/Fravik_utslippsfribyggeplass/fonts/OsloSans-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Oslo Sans';
+  src: url('/Fravik_utslippsfribyggeplass/fonts/OsloSans-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Oslo Sans';
+  src: url('/Fravik_utslippsfribyggeplass/fonts/OsloSans-LightItalic.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+    --color-pri: #1F42AA;
+    --color-pri-600: #193587;
+    --color-pri-light: #E5FCFF;
+    --color-ok: #43F8B6;
+    --color-warn: #FF8274;
+    --color-ink: #2C2C2C;
+    --color-ink-dim: #4D4D4D;
+    --color-muted: #666666;
+    --color-border-color: #E6E6E6;
+    --color-card-bg: #FFFFFF;
+    --color-body-bg: #F8F8F8;
+    --color-ring-color: var(--color-pri);
+    --font-sans: 'Oslo Sans', system-ui, -apple-system, arial, sans-serif;
+}
+
+body {
+    font-family: 'Oslo Sans', system-ui, -apple-system, arial, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 14px;
+}
+
+/* Ensure Oslo Sans is used in all Tailwind utilities */
+* {
+    font-family: inherit;
+}
