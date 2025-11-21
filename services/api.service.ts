@@ -10,11 +10,13 @@ import { logger } from '../utils/logger';
 
 /**
  * API Configuration
+ *
+ * For lokal utvikling med ngrok:
+ * - Sett VITE_API_URL i .env til din ngrok URL (f.eks. https://abc123.ngrok.io/api)
+ * - Sett VITE_MOCK_API=false for å bruke ekte backend
  */
-const API_BASE_URL = '/api'; // SWA serves Functions under /api
-
-// MIDLERTIDIG DUMMY-KODE FOR TESTING
-const MOCK_API = true; // Sett til false for å prøve ekte API
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const MOCK_API = import.meta.env.VITE_MOCK_API !== 'false'; // Standard: true (mock mode)
 
 async function mockSubmit(payload: FormData): Promise<SubmitResponse> {
   logger.log("MOCK SUBMIT:", payload);
@@ -181,7 +183,7 @@ export async function submitApplication(
     // Send request
     // VIKTIG: Ikke sett Content-Type header manuelt!
     // Browser setter automatisk Content-Type: multipart/form-data med boundary
-    const response = await fetch(`${API_BASE_URL}/SubmitApplication`, {
+    const response = await fetch(`${API_BASE_URL}/submit`, {
       method: 'POST',
       body: payload,
       // credentials: 'include', // Hvis du trenger cookies
