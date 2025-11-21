@@ -25,8 +25,12 @@ const migrateFormData = (data: any): FormData => {
       groupAssessment: '',
       projectLeaderDecision: '',
       decisionComment: '',
-      decisionDate: '',
     };
+  }
+
+  // Remove old decisionDate field if it exists (no longer used)
+  if (data.processing && 'decisionDate' in data.processing) {
+    delete data.processing.decisionDate;
   }
 
   // Ensure infrastructure object exists (was always required)
@@ -45,6 +49,11 @@ const migrateFormData = (data: any): FormData => {
   // Ensure machines array exists
   if (!data.machines) {
     data.machines = [];
+  }
+
+  // Add frameworkAgreement field if it doesn't exist
+  if (!data.frameworkAgreement) {
+    data.frameworkAgreement = '';
   }
 
   return data as FormData;

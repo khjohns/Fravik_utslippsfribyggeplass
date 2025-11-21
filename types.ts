@@ -32,6 +32,7 @@ export interface FormData {
   // Section 1
   projectName: string;
   projectNumber: string;
+  frameworkAgreement: 'Ikke aktuelt' | 'Grunnarbeider' | 'Utomhusarbeider' | 'Sammensatte håndverkertjenester' | '';
   mainContractor: string;
 
   // Section 2
@@ -68,6 +69,5 @@ export interface FormData {
     groupAssessment: string;
     projectLeaderDecision: 'approved' | 'rejected' | '';
     decisionComment: string;
-    decisionDate: string;
   };
 }
