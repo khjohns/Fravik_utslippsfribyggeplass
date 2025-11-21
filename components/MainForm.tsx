@@ -53,6 +53,7 @@ const exampleMachine: Machine = {
 const exampleData: FormData = {
   projectName: 'Nye Tøyenbadet',
   projectNumber: 'P12345',
+  frameworkAgreement: 'Grunnarbeider',
   mainContractor: 'Byggmester AS',
   submitterName: 'Kari Nordmann',
   deadline: '2024-08-15',
@@ -77,7 +78,6 @@ const exampleData: FormData = {
     groupAssessment: 'Arbeidsgruppen har gjennomgått søknaden og dokumentasjonen. Vi bekrefter at markedsundersøkelsen er grundig utført og at det foreligger reelle utfordringer med tilgjengelighet av elektriske alternativer.',
     projectLeaderDecision: 'approved',
     decisionComment: 'Søknaden godkjennes under forutsetning av at HVO100 benyttes og at det søkes om elektrisk maskin ved neste anledning.',
-    decisionDate: '2024-08-20',
   }
 };
 
@@ -85,6 +85,7 @@ const exampleData: FormData = {
 const initialFormData: FormData = {
   projectName: '',
   projectNumber: '',
+  frameworkAgreement: '',
   mainContractor: '',
   submitterName: '',
   deadline: '',
@@ -109,7 +110,6 @@ const initialFormData: FormData = {
     groupAssessment: '',
     projectLeaderDecision: '',
     decisionComment: '',
-    decisionDate: '',
   }
 };
 
@@ -744,9 +744,23 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
                     required
                     disabled={submissionContext.source === 'invited'}
                 />
+                <PktSelect
+                    id="frameworkAgreement"
+                    label="Rammeavtale"
+                    name="frameworkAgreement"
+                    value={formData.frameworkAgreement}
+                    onChange={handleChange}
+                    fullwidth
+                >
+                    <option value="">Velg rammeavtale</option>
+                    <option value="Ikke aktuelt">Ikke aktuelt</option>
+                    <option value="Grunnarbeider">Grunnarbeider</option>
+                    <option value="Utomhusarbeider">Utomhusarbeider</option>
+                    <option value="Sammensatte håndverkertjenester">Sammensatte håndverkertjenester</option>
+                </PktSelect>
                 <PktTextinput
                     id="mainContractor"
-                    label={formData.applicationType === 'machine' ? 'Leverandør' : 'Total- / Hovedentreprenør'}
+                    label="Entreprenør"
                     name="mainContractor"
                     value={formData.mainContractor}
                     onChange={handleChange}
@@ -783,7 +797,7 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <PktDatepicker
                     id="deadline"
-                    label="Frist for svar på søknad"
+                    label="Ønsket frist for svar"
                     name="deadline"
                     value={formData.deadline}
                     onChange={handleChange}
@@ -1074,15 +1088,6 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
               rows={4}
               fullwidth
             />
-
-            <PktDatepicker
-              id="decisionDate"
-              label="Beslutningsdato"
-              name="decisionDate"
-              value={formData.processing.decisionDate}
-              onChange={handleProcessingChange}
-              fullwidth
-            />
           </div>
         </fieldset>
         </div>
@@ -1145,7 +1150,7 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
                     isLoading={submissionState.status === 'submitting' || submissionState.status === 'validating'}
                     className="w-full sm:w-auto"
                 >
-                    {submissionState.status === 'submitting' ? 'Sender...' : submissionState.status === 'validating' ? 'Validerer...' : 'Send inn søknad'}
+                    {submissionState.status === 'submitting' ? 'Sender...' : submissionState.status === 'validating' ? 'Validerer...' : activeTab === 'processing' ? 'Behandle søknad' : 'Send inn søknad'}
                 </PktButton>
             </div>
         </div>
