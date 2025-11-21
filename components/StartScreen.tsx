@@ -1,11 +1,34 @@
-import React from 'react';
-import { PktButton } from '@oslokommune/punkt-react';
+import React, { useState } from 'react';
+import { PktButton, PktTextinput } from '@oslokommune/punkt-react';
 
 interface StartScreenProps {
   onStart: (applicationType: 'machine' | 'infrastructure') => void;
 }
 
 const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
+  const [showInviteGenerator, setShowInviteGenerator] = useState(false);
+  const [inviteProjectName, setInviteProjectName] = useState('');
+  const [inviteProjectNumber, setInviteProjectNumber] = useState('');
+  const [generatedLink, setGeneratedLink] = useState('');
+
+  const handleGenerateInviteLink = () => {
+    const inviteData = {
+      projectName: inviteProjectName,
+      projectNumber: inviteProjectNumber,
+      applicationType: 'machine'
+    };
+
+    const base64Data = btoa(JSON.stringify(inviteData));
+    const baseUrl = window.location.origin + window.location.pathname;
+    const inviteLink = `${baseUrl}?invite=${base64Data}`;
+
+    setGeneratedLink(inviteLink);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(generatedLink);
+    alert('Lenke kopiert til utklippstavlen!');
+  };
   return (
     <div className="bg-card-bg p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
       <p className="text-ink-dim mb-4 max-w-3xl mx-auto">
@@ -37,6 +60,84 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
       <p className="text-sm text-muted italic mt-6 text-center">
         Ufullstendige søknader vil medføre lengre behandlingstid. Normal behandlingstid er ca. 10 virkedager.
       </p>
+
+      {/* Invitation Link Generator */}
+      <div className="mt-8 bg-white border border-border-color rounded-lg p-6">
+        <button
+          type="button"
+          onClick={() => setShowInviteGenerator(!showInviteGenerator)}
+          className="w-full flex items-center justify-between text-left"
+        >
+          <h3 className="text-md font-semibold text-ink">
+            🔗 Opprett lenke til leverandør (Internt verktøy)
+          </h3>
+          <span className="text-ink-dim text-xl">
+            {showInviteGenerator ? '−' : '+'}
+          </span>
+        </button>
+
+        {showInviteGenerator && (
+          <div className="mt-4 space-y-4">
+            <p className="text-sm text-ink-dim">
+              Generer en forhåndsutfylt lenke som kan sendes til leverandører. Lenken inneholder prosjektinformasjon og lar leverandøren fylle ut søknaden direkte.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <PktTextinput
+                id="inviteProjectName"
+                label="Prosjektnavn"
+                name="inviteProjectName"
+                value={inviteProjectName}
+                onChange={(e) => setInviteProjectName(e.target.value)}
+              />
+              <PktTextinput
+                id="inviteProjectNumber"
+                label="Prosjektnummer"
+                name="inviteProjectNumber"
+                value={inviteProjectNumber}
+                onChange={(e) => setInviteProjectNumber(e.target.value)}
+              />
+            </div>
+
+            <PktButton
+              onClick={handleGenerateInviteLink}
+              skin="secondary"
+              size="medium"
+              type="button"
+              disabled={!inviteProjectName || !inviteProjectNumber}
+            >
+              Generer lenke
+            </PktButton>
+
+            {generatedLink && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm text-green-800 font-medium mb-2">
+                  ✓ Lenke generert!
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={generatedLink}
+                    readOnly
+                    className="flex-1 px-3 py-2 border border-green-300 rounded text-sm bg-white"
+                  />
+                  <PktButton
+                    onClick={handleCopyLink}
+                    skin="primary"
+                    size="small"
+                    type="button"
+                  >
+                    Kopier
+                  </PktButton>
+                </div>
+                <p className="text-xs text-green-700 mt-2">
+                  Send denne lenken til leverandøren for å la dem fylle ut søknaden.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="mt-8">
         <h2 className="text-lg font-semibold text-ink mb-4 text-center">Velg din rolle:</h2>
