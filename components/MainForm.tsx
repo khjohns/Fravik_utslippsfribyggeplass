@@ -54,7 +54,6 @@ const exampleData: FormData = {
   projectName: 'Nye Tøyenbadet',
   projectNumber: 'P12345',
   mainContractor: 'Byggmester AS',
-  contractBasis: 'Kontrakt inngått ETTER 1. jan 2025',
   submitterName: 'Kari Nordmann',
   deadline: '2024-08-15',
   applicationType: 'machine',
@@ -74,10 +73,12 @@ const exampleData: FormData = {
   consequencesOfRejection: 'Dersom søknaden ikke innvilges, vil prosjektet bli betydelig forsinket, da alternative maskiner ikke er tilgjengelige. Dette vil medføre store ekstrakostnader for prosjektet.',
   advisorAssessment: 'Rådgiver i BOI har vurdert markedsundersøkelsen som grundig og bekrefter at det for øyeblikket er utfordringer med levering av elektriske maskiner i denne størrelsesklassen. Rådgiver støtter søknaden under forutsetning av at avbøtende tiltak (HVO100) benyttes.',
   advisorAttachment: null,
-  groupAssessment: 'Arbeidsgruppen har gjennomgått søknaden og dokumentasjonen. Vi bekrefter at markedsundersøkelsen er grundig utført og at det foreligger reelle utfordringer med tilgjengelighet av elektriske alternativer.',
-  projectLeaderDecision: 'approved',
-  decisionComment: 'Søknaden godkjennes under forutsetning av at HVO100 benyttes og at det søkes om elektrisk maskin ved neste anledning.',
-  decisionDate: '2024-08-20',
+  processing: {
+    groupAssessment: 'Arbeidsgruppen har gjennomgått søknaden og dokumentasjonen. Vi bekrefter at markedsundersøkelsen er grundig utført og at det foreligger reelle utfordringer med tilgjengelighet av elektriske alternativer.',
+    projectLeaderDecision: 'approved',
+    decisionComment: 'Søknaden godkjennes under forutsetning av at HVO100 benyttes og at det søkes om elektrisk maskin ved neste anledning.',
+    decisionDate: '2024-08-20',
+  }
 };
 
 
@@ -85,7 +86,6 @@ const initialFormData: FormData = {
   projectName: '',
   projectNumber: '',
   mainContractor: '',
-  contractBasis: '',
   submitterName: '',
   deadline: '',
   applicationType: '',
@@ -105,10 +105,12 @@ const initialFormData: FormData = {
   consequencesOfRejection: '',
   advisorAssessment: '',
   advisorAttachment: null,
-  groupAssessment: '',
-  projectLeaderDecision: '',
-  decisionComment: '',
-  decisionDate: '',
+  processing: {
+    groupAssessment: '',
+    projectLeaderDecision: '',
+    decisionComment: '',
+    decisionDate: '',
+  }
 };
 
 const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicationType }) => {
@@ -123,12 +125,25 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
   const [isLoadingExample, setIsLoadingExample] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  // Set initial application type when component mounts (for Catenda integration or StartScreen selection)
+  // Set initial application type and handle invited project data
   useEffect(() => {
     if (initialApplicationType && !formData.applicationType) {
       setFormData(prev => ({ ...prev, applicationType: initialApplicationType }));
     }
-  }, [initialApplicationType]);
+
+    // Handle invited project data
+    if (submissionContext.source === 'invited' && (window as any).__invitedProjectData) {
+      const invitedData = (window as any).__invitedProjectData;
+      setFormData(prev => ({
+        ...prev,
+        projectName: invitedData.projectName || prev.projectName,
+        projectNumber: invitedData.projectNumber || prev.projectNumber,
+        applicationType: invitedData.applicationType || prev.applicationType
+      }));
+      // Clean up
+      delete (window as any).__invitedProjectData;
+    }
+  }, [initialApplicationType, submissionContext]);
 
   // File state
   const [files, setFiles] = useState<{
@@ -229,6 +244,17 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
       ...prev,
       infrastructure: {
         ...prev.infrastructure,
+        [name]: value
+      }
+    }));
+  }, []);
+
+  const handleProcessingChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string }}) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      processing: {
+        ...prev.processing,
         [name]: value
       }
     }));
@@ -684,6 +710,7 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
                     value={formData.projectName}
                     onChange={handleChange}
                     required
+                    disabled={submissionContext.source === 'invited'}
                 />
                 <PktTextinput
                     id="projectNumber"
@@ -692,38 +719,16 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
                     value={formData.projectNumber}
                     onChange={handleChange}
                     required
+                    disabled={submissionContext.source === 'invited'}
                 />
                 <PktTextinput
                     id="mainContractor"
-                    label="Total- / Hovedentreprenør"
+                    label={formData.applicationType === 'machine' ? 'Leverandør' : 'Total- / Hovedentreprenør'}
                     name="mainContractor"
                     value={formData.mainContractor}
                     onChange={handleChange}
                     required
                 />
-                <div>
-                    <label className="block text-sm font-medium text-ink-dim mb-2">
-                        Kontraktsgrunnlag <span className="text-warn">*</span>
-                    </label>
-                    <div className="flex flex-col gap-y-2">
-                        <PktRadioButton
-                            id="contractBasis-before"
-                            name="contractBasis"
-                            value="Kontrakt inngått FØR 1. jan 2025"
-                            label="Kontrakt inngått FØR 1. jan 2025"
-                            checked={formData.contractBasis === 'Kontrakt inngått FØR 1. jan 2025'}
-                            onChange={handleChange}
-                        />
-                        <PktRadioButton
-                            id="contractBasis-after"
-                            name="contractBasis"
-                            value="Kontrakt inngått ETTER 1. jan 2025"
-                            label="Kontrakt inngått ETTER 1. jan 2025"
-                            checked={formData.contractBasis === 'Kontrakt inngått ETTER 1. jan 2025'}
-                            onChange={handleChange}
-                        />
-                    </div>
-                </div>
             </div>
         </fieldset>
 
@@ -731,7 +736,16 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
         <fieldset ref={section2Ref} data-section="2" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-2-heading">
             <legend id="section-2-heading" className="text-lg font-semibold text-pri px-2">2. Søknadsdetaljer</legend>
             <div className="mt-4 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+
+            {/* User Info Display (for authenticated users) */}
+            {submissionContext.user ? (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  💡 Dato og signatur settes automatisk basert på innlogget bruker ({submissionContext.user.name})
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <PktTextinput
                     id="submitterName"
                     label="Navn på innsender"
@@ -740,6 +754,10 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
                     onChange={handleChange}
                     required
                 />
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <PktDatepicker
                     id="deadline"
                     label="Frist for svar på søknad"
@@ -749,29 +767,6 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
                     required
                     fullwidth
                 />
-            </div>
-            <div className="mt-6">
-                <label className="block text-sm font-medium text-ink-dim mb-2">
-                    Søknaden gjelder <span className="text-warn">*</span>
-                </label>
-                <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                    <PktRadioButton
-                        id="applicationType-machine"
-                        name="applicationType"
-                        value="machine"
-                        label="Spesifikk maskin / kjøretøy"
-                        checked={formData.applicationType === 'machine'}
-                        onChange={handleChange}
-                    />
-                    <PktRadioButton
-                        id="applicationType-infrastructure"
-                        name="applicationType"
-                        value="infrastructure"
-                        label="Elektrisk infrastruktur på byggeplass"
-                        checked={formData.applicationType === 'infrastructure'}
-                        onChange={handleChange}
-                    />
-                </div>
             </div>
             <div className="mt-6 pt-6 border-t border-border-color">
                 <div>
@@ -1009,8 +1004,8 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
               id="groupAssessment"
               label="Vurdering fra arbeidsgruppen"
               name="groupAssessment"
-              value={formData.groupAssessment}
-              onChange={handleChange}
+              value={formData.processing.groupAssessment}
+              onChange={handleProcessingChange}
               placeholder="Skriv arbeidsgruppens vurdering av søknaden her..."
               rows={6}
               fullwidth
@@ -1032,16 +1027,16 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
                   name="projectLeaderDecision"
                   value="approved"
                   label="Godkjent"
-                  checked={formData.projectLeaderDecision === 'approved'}
-                  onChange={handleChange}
+                  checked={formData.processing.projectLeaderDecision === 'approved'}
+                  onChange={handleProcessingChange}
                 />
                 <PktRadioButton
                   id="decision-rejected"
                   name="projectLeaderDecision"
                   value="rejected"
                   label="Avslått"
-                  checked={formData.projectLeaderDecision === 'rejected'}
-                  onChange={handleChange}
+                  checked={formData.processing.projectLeaderDecision === 'rejected'}
+                  onChange={handleProcessingChange}
                 />
               </div>
             </div>
@@ -1050,8 +1045,8 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
               id="decisionComment"
               label="Kommentar til beslutning"
               name="decisionComment"
-              value={formData.decisionComment}
-              onChange={handleChange}
+              value={formData.processing.decisionComment}
+              onChange={handleProcessingChange}
               placeholder="Eventuelle kommentarer til beslutningen..."
               rows={4}
               fullwidth
@@ -1061,8 +1056,8 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
               id="decisionDate"
               label="Beslutningsdato"
               name="decisionDate"
-              value={formData.decisionDate}
-              onChange={handleChange}
+              value={formData.processing.decisionDate}
+              onChange={handleProcessingChange}
               fullwidth
             />
           </div>
@@ -1072,6 +1067,18 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
 
         {/* Submission State */}
         {renderSubmissionState()}
+
+        {/* Bot Protection (CAPTCHA) */}
+        {(submissionContext.source === 'standalone' || submissionContext.source === 'invited') && !submissionContext.user && (
+          <div className="bg-gray-50 border border-gray-300 rounded-lg p-6 text-center">
+            <div className="bg-white border-2 border-dashed border-gray-400 rounded-lg p-8">
+              <p className="text-gray-600 font-medium mb-2">🛡️ Bot-beskyttelse</p>
+              <p className="text-sm text-gray-500">
+                [CAPTCHA vil bli vist her - Turnstile/ReCAPTCHA]
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Submission */}
         <div className="space-y-4 pt-4">

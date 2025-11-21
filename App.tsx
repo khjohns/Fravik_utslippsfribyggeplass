@@ -28,18 +28,53 @@ const App: React.FC = () => {
     const source = searchParams.get('source');
     const caseId = searchParams.get('caseId');
     const projectId = searchParams.get('projectId');
+    const inviteParam = searchParams.get('invite');
 
-    if (source === 'catenda' && caseId) {
-      // Catenda integration mode: skip StartScreen
+    // Scenario A: Invitation Link
+    if (inviteParam) {
+      try {
+        // Decode Base64 and parse JSON
+        const decodedData = JSON.parse(atob(inviteParam));
+
+        setSubmissionContext({
+          source: 'invited',
+          originUrl: window.location.href
+        });
+
+        // Pre-fill project details from invitation
+        setInitialApplicationType(decodedData.applicationType || 'machine');
+
+        // Store pre-filled data to pass to MainForm
+        (window as any).__invitedProjectData = {
+          projectName: decodedData.projectName || '',
+          projectNumber: decodedData.projectNumber || '',
+          applicationType: decodedData.applicationType || 'machine'
+        };
+
+        setAppState('form');
+      } catch (error) {
+        console.error('Failed to parse invitation link:', error);
+        // Fall back to standalone mode
+        setSubmissionContext({ source: 'standalone' });
+      }
+    }
+    // Scenario B: Catenda Integration
+    else if (source === 'catenda' && caseId) {
       setSubmissionContext({
         source: 'catenda',
         externalCaseId: caseId,
         projectId: projectId || undefined,
-        originUrl: window.location.href
+        originUrl: window.location.href,
+        // Mock authenticated user
+        user: {
+          name: 'Ola Nordmann',
+          email: 'ola@catenda.no'
+        }
       });
       setAppState('form');
-    } else {
-      // Standalone mode: show StartScreen
+    }
+    // Scenario C: Default (Standalone)
+    else {
       setSubmissionContext({
         source: 'standalone'
       });

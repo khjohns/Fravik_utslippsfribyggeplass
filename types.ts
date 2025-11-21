@@ -1,9 +1,14 @@
 // Fix: Removed file content delimiters from the start and end of the file.
 export interface SubmissionMeta {
-  source: 'catenda' | 'standalone';
-  externalCaseId?: string;
+  source: 'catenda' | 'standalone' | 'invited';
+  externalCaseId?: string; // For Catenda
   projectId?: string;
   originUrl?: string;
+  // If authenticated via EntraID/Catenda or other means:
+  user?: {
+    name: string;
+    email: string;
+  };
 }
 
 export interface Machine {
@@ -28,7 +33,6 @@ export interface FormData {
   projectName: string;
   projectNumber: string;
   mainContractor: string;
-  contractBasis: 'Kontrakt inngått FØR 1. jan 2025' | 'Kontrakt inngått ETTER 1. jan 2025' | '';
 
   // Section 2
   submitterName: string;
@@ -36,10 +40,10 @@ export interface FormData {
   applicationType: 'machine' | 'infrastructure' | '';
   isUrgent: boolean;
   urgencyReason: string;
-  
+
   // Section 3A
   machines: Machine[];
-  
+
   // Section 3B
   infrastructure: {
     powerAccessDescription: string;
@@ -50,7 +54,7 @@ export interface FormData {
     infrastructureReplacement: string;
     alternativeMethods: string;
   };
-  
+
   // Section 4
   mitigatingMeasures: string;
   consequencesOfRejection: string;
@@ -60,8 +64,10 @@ export interface FormData {
   advisorAttachment: File | null;
 
   // Processing Tab (Internal use - Oslobygg KF)
-  groupAssessment: string;
-  projectLeaderDecision: 'approved' | 'rejected' | '';
-  decisionComment: string;
-  decisionDate: string;
+  processing: {
+    groupAssessment: string;
+    projectLeaderDecision: 'approved' | 'rejected' | '';
+    decisionComment: string;
+    decisionDate: string;
+  };
 }
