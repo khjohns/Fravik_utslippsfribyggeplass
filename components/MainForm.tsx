@@ -125,21 +125,6 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
   const [isLoadingExample, setIsLoadingExample] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  // Migration: Ensure processing object exists (for backward compatibility with old localStorage data)
-  useEffect(() => {
-    if (!formData.processing) {
-      setFormData(prev => ({
-        ...prev,
-        processing: {
-          groupAssessment: '',
-          projectLeaderDecision: '',
-          decisionComment: '',
-          decisionDate: '',
-        }
-      }));
-    }
-  }, []);
-
   // Set initial application type and handle invited project data
   useEffect(() => {
     // IMPORTANT: Always override applicationType when coming from StartScreen

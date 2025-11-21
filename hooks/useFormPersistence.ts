@@ -15,6 +15,41 @@ interface StoredFormData {
  * Custom hook for å håndtere form persistence i localStorage
  * Auto-lagrer formdata hvert 2. sekund og laster inn tidligere data ved oppstart
  */
+/**
+ * Migrate old localStorage data to match current FormData structure
+ */
+const migrateFormData = (data: any): FormData => {
+  // Ensure processing object exists (added in refactoring)
+  if (!data.processing) {
+    data.processing = {
+      groupAssessment: '',
+      projectLeaderDecision: '',
+      decisionComment: '',
+      decisionDate: '',
+    };
+  }
+
+  // Ensure infrastructure object exists (was always required)
+  if (!data.infrastructure) {
+    data.infrastructure = {
+      powerAccessDescription: '',
+      mobileBatteryConsidered: false,
+      temporaryGridConsidered: false,
+      projectSpecificConditions: '',
+      costAssessment: '',
+      infrastructureReplacement: '',
+      alternativeMethods: '',
+    };
+  }
+
+  // Ensure machines array exists
+  if (!data.machines) {
+    data.machines = [];
+  }
+
+  return data as FormData;
+};
+
 export const useFormPersistence = (initialData: FormData) => {
   const [formData, setFormData] = useState<FormData>(() => {
     // Prøv å laste fra localStorage ved mount
@@ -27,7 +62,10 @@ export const useFormPersistence = (initialData: FormData) => {
         const maxAge = MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
         if (parsed.timestamp && Date.now() - parsed.timestamp < maxAge) {
           logger.log('Lastet lagret formdata fra localStorage');
-          return parsed.data;
+          // Migrate data to ensure it matches current structure
+          const migratedData = migrateFormData(parsed.data);
+          logger.log('Migrerte lagrede data til nyeste struktur');
+          return migratedData;
         } else {
           logger.log('Lagrede data er for gamle, bruker initial data');
         }
