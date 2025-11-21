@@ -1,4 +1,11 @@
 // Fix: Removed file content delimiters from the start and end of the file.
+export interface SubmissionMeta {
+  source: 'catenda' | 'standalone';
+  externalCaseId?: string;
+  projectId?: string;
+  originUrl?: string;
+}
+
 export interface Machine {
   id: string;
   type: 'Gravemaskin' | 'Hjullaster' | 'Lift' | 'Annet' | '';
@@ -47,8 +54,14 @@ export interface FormData {
   // Section 4
   mitigatingMeasures: string;
   consequencesOfRejection: string;
-  
+
   // Section 5
   advisorAssessment: string;
   advisorAttachment: File | null;
+
+  // Processing Tab (Internal use - Oslobygg KF)
+  groupAssessment: string;
+  projectLeaderDecision: 'approved' | 'rejected' | '';
+  decisionComment: string;
+  decisionDate: string;
 }

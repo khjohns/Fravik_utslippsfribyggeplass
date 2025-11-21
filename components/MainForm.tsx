@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker, PktStepper, PktStep } from '@oslokommune/punkt-react';
-import type { FormData, Machine } from '../types';
+import type { FormData, Machine, SubmissionMeta } from '../types';
 import { FileUploadField } from './form/Fields';
 import MachineGallery from './MachineGallery';
 import {
@@ -15,6 +15,13 @@ import { logger } from '../utils/logger';
 import { generateFravikPdf } from '../utils/FravikPdfDocument';
 
 const MachineModal = lazy(() => import('./MachineModal'));
+
+interface MainFormProps {
+  submissionContext: SubmissionMeta;
+  initialApplicationType: 'machine' | 'infrastructure' | '';
+}
+
+type TabType = 'application' | 'processing';
 
 /**
  * Submission states
@@ -67,6 +74,10 @@ const exampleData: FormData = {
   consequencesOfRejection: 'Dersom søknaden ikke innvilges, vil prosjektet bli betydelig forsinket, da alternative maskiner ikke er tilgjengelige. Dette vil medføre store ekstrakostnader for prosjektet.',
   advisorAssessment: 'Rådgiver i BOI har vurdert markedsundersøkelsen som grundig og bekrefter at det for øyeblikket er utfordringer med levering av elektriske maskiner i denne størrelsesklassen. Rådgiver støtter søknaden under forutsetning av at avbøtende tiltak (HVO100) benyttes.',
   advisorAttachment: null,
+  groupAssessment: 'Arbeidsgruppen har gjennomgått søknaden og dokumentasjonen. Vi bekrefter at markedsundersøkelsen er grundig utført og at det foreligger reelle utfordringer med tilgjengelighet av elektriske alternativer.',
+  projectLeaderDecision: 'approved',
+  decisionComment: 'Søknaden godkjennes under forutsetning av at HVO100 benyttes og at det søkes om elektrisk maskin ved neste anledning.',
+  decisionDate: '2024-08-20',
 };
 
 
@@ -94,18 +105,30 @@ const initialFormData: FormData = {
   consequencesOfRejection: '',
   advisorAssessment: '',
   advisorAttachment: null,
+  groupAssessment: '',
+  projectLeaderDecision: '',
+  decisionComment: '',
+  decisionDate: '',
 };
 
-const MainForm: React.FC = () => {
+const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicationType }) => {
   // Use custom hooks for form persistence
   const { formData, setFormData, clearSaved, hasSavedData } = useFormPersistence(initialFormData);
 
+  const [activeTab, setActiveTab] = useState<TabType>('application');
   const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
   const [editingMachineId, setEditingMachineId] = useState<string | null>(null);
   const [advisorAttachmentName, setAdvisorAttachmentName] = useState<string | null>(null);
   const [advisorValidationError, setAdvisorValidationError] = useState<string | null>(null);
   const [isLoadingExample, setIsLoadingExample] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  // Set initial application type when component mounts (for Catenda integration or StartScreen selection)
+  useEffect(() => {
+    if (initialApplicationType && !formData.applicationType) {
+      setFormData(prev => ({ ...prev, applicationType: initialApplicationType }));
+    }
+  }, [initialApplicationType]);
 
   // File state
   const [files, setFiles] = useState<{
@@ -340,9 +363,15 @@ const MainForm: React.FC = () => {
         );
       }, 500);
 
+      // Merge formData with submissionContext
+      const submissionData = {
+        ...formData,
+        submissionMeta: submissionContext
+      };
+
       // Submit application
       const response = await submitApplicationWithRetry(
-        formData,
+        submissionData as any, // Type assertion needed due to added meta field
         files,
         3, // Max 3 retries
         1000 // 1 second delay
@@ -602,7 +631,48 @@ const MainForm: React.FC = () => {
 
         {/* Form Content */}
         <div className="flex-1 min-w-0">
+          {/* Tab Navigation */}
+          <div className="bg-card-bg border border-border-color rounded-lg mb-8 p-2" role="tablist" aria-label="Søknadsfaner">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'application'}
+                aria-controls="application-panel"
+                onClick={() => setActiveTab('application')}
+                className={`flex-1 py-3 px-4 rounded-md font-medium transition-all ${
+                  activeTab === 'application'
+                    ? 'bg-pri text-white'
+                    : 'bg-transparent text-ink-dim hover:bg-pri-light'
+                }`}
+              >
+                Søknad
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'processing'}
+                aria-controls="processing-panel"
+                onClick={() => setActiveTab('processing')}
+                className={`flex-1 py-3 px-4 rounded-md font-medium transition-all ${
+                  activeTab === 'processing'
+                    ? 'bg-pri text-white'
+                    : 'bg-transparent text-ink-dim hover:bg-pri-light'
+                }`}
+              >
+                Behandling
+              </button>
+            </div>
+          </div>
+
       <form onSubmit={handleSubmit} className="space-y-8" aria-label="Søknadsskjema">
+        {/* Application Tab */}
+        <div
+          role="tabpanel"
+          id="application-panel"
+          aria-labelledby="application-tab"
+          className={activeTab === 'application' ? 'space-y-8' : 'hidden'}
+        >
         {/* Section 1 */}
         <fieldset ref={section1Ref} data-section="1" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-1-heading">
             <legend id="section-1-heading" className="text-lg font-semibold text-pri px-2">1. Prosjektinformasjon</legend>
@@ -883,8 +953,24 @@ const MainForm: React.FC = () => {
                 </div>
             </div>
         </fieldset>
+        </div>
+        {/* End of Application Tab */}
 
-        {/* Section 5 */}
+        {/* Processing Tab */}
+        <div
+          role="tabpanel"
+          id="processing-panel"
+          aria-labelledby="processing-tab"
+          className={activeTab === 'processing' ? 'space-y-8' : 'hidden'}
+        >
+          {/* Helper text for internal users */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              <strong>Obs:</strong> Denne fanen er kun for intern bruk av Oslobygg KF. Her skal arbeidsgruppen og prosjektleder registrere sin vurdering og beslutning.
+            </p>
+          </div>
+
+        {/* Section 5 - Moved to Processing Tab */}
         <fieldset ref={section5Ref} data-section="5" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-5-heading">
             <legend id="section-5-heading" className="text-lg font-semibold text-pri px-2">5. Vurdering fra rådgiver</legend>
             <div className="mt-4 space-y-6">
@@ -914,6 +1000,75 @@ const MainForm: React.FC = () => {
                 {advisorValidationError && <p className="text-center text-sm text-warn">{advisorValidationError}</p>}
             </div>
         </fieldset>
+
+        {/* Section 6 - Working Group Assessment */}
+        <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-6-heading">
+          <legend id="section-6-heading" className="text-lg font-semibold text-pri px-2">Arbeidsgruppens vurdering</legend>
+          <div className="mt-4">
+            <PktTextarea
+              id="groupAssessment"
+              label="Vurdering fra arbeidsgruppen"
+              name="groupAssessment"
+              value={formData.groupAssessment}
+              onChange={handleChange}
+              placeholder="Skriv arbeidsgruppens vurdering av søknaden her..."
+              rows={6}
+              fullwidth
+            />
+          </div>
+        </fieldset>
+
+        {/* Section 7 - Project Leader Decision */}
+        <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-7-heading">
+          <legend id="section-7-heading" className="text-lg font-semibold text-pri px-2">Prosjektleders beslutning</legend>
+          <div className="mt-4 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-ink-dim mb-2">
+                Beslutning
+              </label>
+              <div className="mt-2 flex flex-col gap-y-2">
+                <PktRadioButton
+                  id="decision-approved"
+                  name="projectLeaderDecision"
+                  value="approved"
+                  label="Godkjent"
+                  checked={formData.projectLeaderDecision === 'approved'}
+                  onChange={handleChange}
+                />
+                <PktRadioButton
+                  id="decision-rejected"
+                  name="projectLeaderDecision"
+                  value="rejected"
+                  label="Avslått"
+                  checked={formData.projectLeaderDecision === 'rejected'}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <PktTextarea
+              id="decisionComment"
+              label="Kommentar til beslutning"
+              name="decisionComment"
+              value={formData.decisionComment}
+              onChange={handleChange}
+              placeholder="Eventuelle kommentarer til beslutningen..."
+              rows={4}
+              fullwidth
+            />
+
+            <PktDatepicker
+              id="decisionDate"
+              label="Beslutningsdato"
+              name="decisionDate"
+              value={formData.decisionDate}
+              onChange={handleChange}
+              fullwidth
+            />
+          </div>
+        </fieldset>
+        </div>
+        {/* End of Processing Tab */}
 
         {/* Submission State */}
         {renderSubmissionState()}
