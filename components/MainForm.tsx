@@ -142,8 +142,31 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
 
   // Set initial application type and handle invited project data
   useEffect(() => {
-    if (initialApplicationType && !formData.applicationType) {
-      setFormData(prev => ({ ...prev, applicationType: initialApplicationType }));
+    // IMPORTANT: Always override applicationType when coming from StartScreen
+    // This ensures the correct form is shown even if old data exists in localStorage
+    if (initialApplicationType) {
+      setFormData(prev => {
+        // If changing application type, reset relevant sections
+        if (prev.applicationType && prev.applicationType !== initialApplicationType) {
+          return {
+            ...prev,
+            applicationType: initialApplicationType,
+            // Reset machines if switching away from machine
+            machines: initialApplicationType === 'machine' ? prev.machines : [],
+            // Reset infrastructure if switching away from infrastructure
+            infrastructure: initialApplicationType === 'infrastructure' ? prev.infrastructure : {
+              powerAccessDescription: '',
+              mobileBatteryConsidered: false,
+              temporaryGridConsidered: false,
+              projectSpecificConditions: '',
+              costAssessment: '',
+              infrastructureReplacement: '',
+              alternativeMethods: '',
+            }
+          };
+        }
+        return { ...prev, applicationType: initialApplicationType };
+      });
     }
 
     // Handle invited project data
