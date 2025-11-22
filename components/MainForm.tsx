@@ -13,6 +13,7 @@ import {
 import { useFormPersistence, useUnsavedChangesWarning } from '../hooks';
 import { logger } from '../utils/logger';
 import { generateFravikPdf, generateFravikPdfBlob } from '../utils/FravikPdfDocument';
+import PDFPreviewModal from './PDFPreviewModal';
 
 const MachineModal = lazy(() => import('./MachineModal'));
 
@@ -130,7 +131,7 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
 
   // PDF Preview Modal state
   const [showPdfPreview, setShowPdfPreview] = useState(false);
-  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewBlob, setPdfPreviewBlob] = useState<Blob | null>(null);
 
   // Load initial data when in process mode
   useEffect(() => {
@@ -352,8 +353,8 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
   const handlePreviewPdf = useCallback(async () => {
     setIsGeneratingPdf(true);
     try {
-      const url = await generateFravikPdfBlob(formData);
-      setPdfPreviewUrl(url);
+      const blob = await generateFravikPdfBlob(formData);
+      setPdfPreviewBlob(blob);
       setShowPdfPreview(true);
     } catch (error) {
       logger.error('PDF generation failed:', error);
@@ -365,20 +366,8 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
 
   const handleClosePdfPreview = useCallback(() => {
     setShowPdfPreview(false);
-    if (pdfPreviewUrl) {
-      URL.revokeObjectURL(pdfPreviewUrl);
-      setPdfPreviewUrl(null);
-    }
-  }, [pdfPreviewUrl]);
-
-  const handleDownloadPdfFromPreview = useCallback(async () => {
-    try {
-      await generateFravikPdf(formData);
-    } catch (error) {
-      logger.error('PDF download failed:', error);
-      alert('Kunne ikke laste ned PDF. Vennligst prøv igjen.');
-    }
-  }, [formData]);
+    setPdfPreviewBlob(null);
+  }, []);
 
   const handleOpenMachineModal = useCallback((id?: string) => {
     setEditingMachineId(id || null);
@@ -1207,77 +1196,13 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
       )}
 
       {/* PDF Preview Modal */}
-      {showPdfPreview && pdfPreviewUrl && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-          onClick={handleClosePdfPreview}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="pdf-preview-title"
-        >
-          <div
-            className="bg-white w-full max-w-5xl h-[90vh] flex flex-col rounded-lg shadow-xl p-6 m-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex justify-between items-center mb-4 pb-4 border-b border-border-color">
-              <h2 id="pdf-preview-title" className="text-xl font-bold text-pri">
-                Forhåndsvisning av søknad
-              </h2>
-              <button
-                onClick={handleClosePdfPreview}
-                className="text-3xl text-ink-dim hover:text-ink transition-colors leading-none"
-                aria-label="Lukk forhåndsvisning"
-              >
-                &times;
-              </button>
-            </div>
-
-            {/* PDF Viewer */}
-            <div className="flex-grow bg-gray-100 overflow-hidden rounded border border-border-color">
-              <iframe
-                src={pdfPreviewUrl}
-                className="w-full h-full"
-                title="PDF Forhåndsvisning"
-                style={{ border: 'none' }}
-              />
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex justify-between items-center gap-4 mt-4 pt-4 border-t border-border-color">
-              <PktButton
-                onClick={handleDownloadPdfFromPreview}
-                skin="tertiary"
-                size="medium"
-              >
-                Last ned PDF
-              </PktButton>
-              <div className="flex gap-3">
-                <PktButton
-                  onClick={handleClosePdfPreview}
-                  skin="secondary"
-                  size="medium"
-                >
-                  Rediger søknad
-                </PktButton>
-                <PktButton
-                  onClick={() => {
-                    handleClosePdfPreview();
-                    // Scroll to submit button after closing
-                    setTimeout(() => {
-                      const submitButton = document.querySelector('[type="submit"]');
-                      submitButton?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 100);
-                  }}
-                  skin="primary"
-                  size="medium"
-                >
-                  {mode === 'process' ? 'Fortsett til vedtak' : 'Fortsett til innsending'}
-                </PktButton>
-              </div>
-            </div>
-          </div>
-        </div>
+      {showPdfPreview && (
+        <PDFPreviewModal
+          pdfBlob={pdfPreviewBlob}
+          onClose={handleClosePdfPreview}
+          onSubmit={handleSubmit}
+          mode={mode}
+        />
       )}
     </>
   );
