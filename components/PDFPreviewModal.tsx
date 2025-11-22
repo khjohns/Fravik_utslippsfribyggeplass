@@ -3,7 +3,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import { PktButton } from '@oslokommune/punkt-react';
 
 // Sett opp worker (viktig for ytelse)
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface PDFPreviewModalProps {
   pdfBlob: Blob | null;
@@ -20,6 +20,22 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
 }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [containerWidth, setContainerWidth] = useState<number>(600);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Convert blob to URL for react-pdf
+  useEffect(() => {
+    if (pdfBlob) {
+      const url = URL.createObjectURL(pdfBlob);
+      setPdfUrl(url);
+      console.log('PDF URL created:', url);
+
+      return () => {
+        URL.revokeObjectURL(url);
+        console.log('PDF URL revoked');
+      };
+    }
+  }, [pdfBlob]);
 
   // Juster bredde ved resize for responsivitet
   useEffect(() => {
@@ -35,7 +51,14 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
   }, []);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    console.log('PDF loaded successfully, pages:', numPages);
     setNumPages(numPages);
+    setLoadError(null);
+  }
+
+  function onDocumentLoadError(error: Error) {
+    console.error('PDF load error:', error);
+    setLoadError(error.message || 'Ukjent feil');
   }
 
   const handleDownload = () => {
@@ -49,7 +72,9 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
     }
   };
 
-  if (!pdfBlob) return null;
+  if (!pdfBlob || !pdfUrl) {
+    return null;
+  }
 
   return (
     <div
@@ -82,8 +107,13 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
         <div className="flex-grow overflow-y-auto bg-gray-100 p-4 md:p-8 flex justify-center">
           <div className="bg-white shadow-lg">
             <Document
-              file={pdfBlob}
+              file={pdfUrl}
               onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={onDocumentLoadError}
+              options={{
+                cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+                cMapPacked: true,
+              }}
               loading={
                 <div className="flex flex-col items-center justify-center h-64 p-10">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pri mb-4"></div>
@@ -93,6 +123,9 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
               error={
                 <div className="p-10 text-center">
                   <p className="text-red-600 font-semibold mb-2">Kunne ikke laste forhåndsvisning.</p>
+                  {loadError && (
+                    <p className="text-sm text-red-500 mb-2 font-mono">{loadError}</p>
+                  )}
                   <p className="text-sm text-ink-dim mb-4">Prøv å laste ned filen i stedet.</p>
                   <PktButton onClick={handleDownload} skin="primary">
                     Last ned PDF
