@@ -245,6 +245,102 @@ export async function checkAPIHealth(): Promise<boolean> {
 }
 
 /**
+ * Get existing submission by ID (for processing mode)
+ *
+ * @param id - Submission ID (UUID or external case ID)
+ * @returns Full form data for the submission
+ * @throws APIError on failure
+ */
+export async function getSubmission(id: string): Promise<AppFormData> {
+  // MIDLERTIDIG DUMMY-KODE FOR TESTING
+  if (MOCK_API) {
+    logger.log('MOCK: Fetching submission with ID:', id);
+
+    // Simuler en forsinkelse
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Return mock data
+    return {
+      projectName: 'Nye Tøyenbadet',
+      projectNumber: 'P12345',
+      frameworkAgreement: 'Grunnarbeider',
+      mainContractor: 'Byggmester AS',
+      submitterName: 'Kari Nordmann',
+      deadline: '2024-08-15',
+      applicationType: 'machine',
+      isUrgent: true,
+      urgencyReason: 'Uforutsett hendelse på byggeplass krevde umiddelbar endring av utstyr.',
+      machines: [],
+      infrastructure: {
+        powerAccessDescription: '',
+        mobileBatteryConsidered: false,
+        temporaryGridConsidered: false,
+        projectSpecificConditions: '',
+        costAssessment: '',
+        infrastructureReplacement: '',
+        alternativeMethods: '',
+      },
+      mitigatingMeasures: 'Det vil bli benyttet HVO100 biodiesel.',
+      consequencesOfRejection: 'Prosjektet vil bli forsinket.',
+      advisorAssessment: 'Rådgiver støtter søknaden.',
+      advisorAttachment: null,
+      processing: {
+        groupAssessment: '',
+        projectLeaderDecision: '',
+        decisionComment: '',
+      }
+    };
+  }
+  // SLUTT PÅ DUMMY-KODE
+
+  try {
+    logger.log('Fetching submission:', id);
+
+    const response = await fetch(`${API_BASE_URL}/submissions/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorData = data as ErrorResponse;
+      throw new APIError(
+        errorData.message || 'Failed to fetch submission',
+        response.status,
+        errorData.error || 'FetchError',
+        errorData.details
+      );
+    }
+
+    logger.log('✅ Submission fetched successfully:', data);
+    return data as AppFormData;
+
+  } catch (error) {
+    if (error instanceof APIError) {
+      throw error;
+    }
+
+    if (error instanceof TypeError) {
+      throw new APIError(
+        'Network error. Please check your connection.',
+        0,
+        'NetworkError'
+      );
+    }
+
+    throw new APIError(
+      'An unexpected error occurred while fetching submission',
+      500,
+      'UnknownError',
+      (error as Error).message
+    );
+  }
+}
+
+/**
  * Retry logic wrapper (for transient failures)
  * 
  * Brukes for å håndtere midlertidige feil som network timeouts
@@ -406,6 +502,7 @@ export function validateBeforeSubmit(
 export default {
   submitApplication,
   submitApplicationWithRetry,
+  getSubmission,
   checkAPIHealth,
   validateFormData,
   validateFiles,
