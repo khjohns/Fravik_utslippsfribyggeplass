@@ -17,8 +17,10 @@ import { generateFravikPdf } from '../utils/FravikPdfDocument';
 const MachineModal = lazy(() => import('./MachineModal'));
 
 interface MainFormProps {
+  mode: 'submit' | 'process';
   submissionContext: SubmissionMeta;
   initialApplicationType: 'machine' | 'infrastructure' | '';
+  initialData?: FormData;
 }
 
 type TabType = 'application' | 'processing';
@@ -113,17 +115,26 @@ const initialFormData: FormData = {
   }
 };
 
-const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicationType }) => {
-  // Use custom hooks for form persistence
+const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApplicationType, initialData }) => {
+  // Use custom hooks for form persistence (only in submit mode)
   const { formData, setFormData, clearSaved, hasSavedData } = useFormPersistence(initialFormData);
 
-  const [activeTab, setActiveTab] = useState<TabType>('application');
+  // Default to 'processing' tab when in process mode, 'application' otherwise
+  const [activeTab, setActiveTab] = useState<TabType>(mode === 'process' ? 'processing' : 'application');
   const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
   const [editingMachineId, setEditingMachineId] = useState<string | null>(null);
   const [advisorAttachmentName, setAdvisorAttachmentName] = useState<string | null>(null);
   const [advisorValidationError, setAdvisorValidationError] = useState<string | null>(null);
   const [isLoadingExample, setIsLoadingExample] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  // Load initial data when in process mode
+  useEffect(() => {
+    if (mode === 'process' && initialData) {
+      logger.log('Loading submission data for processing:', initialData);
+      setFormData(initialData);
+    }
+  }, [mode, initialData]);
 
   // Set initial application type and handle invited project data
   useEffect(() => {
@@ -722,6 +733,8 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
           aria-labelledby="application-tab"
           className={activeTab === 'application' ? 'space-y-8' : 'hidden'}
         >
+        {/* Wrap entire application tab in fieldset to make read-only in process mode */}
+        <fieldset disabled={mode === 'process'} className={mode === 'process' ? 'opacity-90 space-y-8' : 'space-y-8'}>
         {/* Section 1 */}
         <fieldset ref={section1Ref} data-section="1" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-1-heading">
             <legend id="section-1-heading" className="text-lg font-semibold text-pri px-2">1. Prosjektinformasjon</legend>
@@ -985,6 +998,7 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
                 </div>
             </div>
         </fieldset>
+        </fieldset>
         </div>
         {/* End of Application Tab */}
 
@@ -1150,7 +1164,7 @@ const MainForm: React.FC<MainFormProps> = ({ submissionContext, initialApplicati
                     isLoading={submissionState.status === 'submitting' || submissionState.status === 'validating'}
                     className="w-full sm:w-auto"
                 >
-                    {submissionState.status === 'submitting' ? 'Sender...' : submissionState.status === 'validating' ? 'Validerer...' : activeTab === 'processing' ? 'Behandle søknad' : 'Send inn søknad'}
+                    {submissionState.status === 'submitting' ? 'Sender...' : submissionState.status === 'validating' ? 'Validerer...' : mode === 'process' ? 'Lagre vedtak' : 'Send inn søknad'}
                 </PktButton>
             </div>
         </div>

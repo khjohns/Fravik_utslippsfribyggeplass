@@ -1,6 +1,7 @@
 // Fix: Removed file content delimiters from the start and end of the file.
 export interface SubmissionMeta {
-  source: 'catenda' | 'standalone' | 'invited';
+  source: 'catenda' | 'standalone' | 'invited' | 'processing';
+  submissionId?: string; // Internal UUID for storage (CSV/Dataverse)
   externalCaseId?: string; // For Catenda
   projectId?: string;
   originUrl?: string;
