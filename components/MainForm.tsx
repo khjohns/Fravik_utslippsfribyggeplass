@@ -13,6 +13,7 @@ import {
 import { useFormPersistence, useUnsavedChangesWarning } from '../hooks';
 import { logger } from '../utils/logger';
 import { generateFravikPdf, generateFravikPdfBlob } from '../utils/FravikPdfDocument';
+import PDFPreviewModal from './PDFPreviewModal';
 
 const MachineModal = lazy(() => import('./MachineModal'));
 
@@ -130,18 +131,7 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
 
   // PDF Preview Modal state
   const [showPdfPreview, setShowPdfPreview] = useState(false);
-  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
-  const [isMobileDevice, setIsMobileDevice] = useState(false);
-
-  // Detect mobile device
-  useEffect(() => {
-    const checkMobile = () => {
-      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-      const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
-      setIsMobileDevice(isMobile);
-    };
-    checkMobile();
-  }, []);
+  const [pdfPreviewBlob, setPdfPreviewBlob] = useState<Blob | null>(null);
 
   // Load initial data when in process mode
   useEffect(() => {
@@ -363,8 +353,8 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
   const handlePreviewPdf = useCallback(async () => {
     setIsGeneratingPdf(true);
     try {
-      const url = await generateFravikPdfBlob(formData);
-      setPdfPreviewUrl(url);
+      const blob = await generateFravikPdfBlob(formData);
+      setPdfPreviewBlob(blob);
       setShowPdfPreview(true);
     } catch (error) {
       logger.error('PDF generation failed:', error);
@@ -376,20 +366,8 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
 
   const handleClosePdfPreview = useCallback(() => {
     setShowPdfPreview(false);
-    if (pdfPreviewUrl) {
-      URL.revokeObjectURL(pdfPreviewUrl);
-      setPdfPreviewUrl(null);
-    }
-  }, [pdfPreviewUrl]);
-
-  const handleDownloadPdfFromPreview = useCallback(async () => {
-    try {
-      await generateFravikPdf(formData);
-    } catch (error) {
-      logger.error('PDF download failed:', error);
-      alert('Kunne ikke laste ned PDF. Vennligst prøv igjen.');
-    }
-  }, [formData]);
+    setPdfPreviewBlob(null);
+  }, []);
 
   const handleOpenMachineModal = useCallback((id?: string) => {
     setEditingMachineId(id || null);
@@ -1218,120 +1196,13 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
       )}
 
       {/* PDF Preview Modal */}
-      {showPdfPreview && pdfPreviewUrl && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-          onClick={handleClosePdfPreview}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="pdf-preview-title"
-        >
-          <div
-            className="bg-white w-full max-w-5xl h-[90vh] flex flex-col rounded-lg shadow-xl p-6 m-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex justify-between items-center mb-4 pb-4 border-b border-border-color">
-              <h2 id="pdf-preview-title" className="text-xl font-bold text-pri">
-                Forhåndsvisning av søknad
-              </h2>
-              <button
-                onClick={handleClosePdfPreview}
-                className="text-3xl text-ink-dim hover:text-ink transition-colors leading-none"
-                aria-label="Lukk forhåndsvisning"
-              >
-                &times;
-              </button>
-            </div>
-
-            {/* PDF Viewer */}
-            <div className="flex-grow bg-gray-100 overflow-hidden rounded border border-border-color relative">
-              {isMobileDevice ? (
-                /* Mobile: Show download prompt instead of embed */
-                <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                  <div className="mb-6">
-                    <svg className="w-20 h-20 mx-auto text-pri mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    <h3 className="text-lg font-semibold text-ink mb-2">PDF klar til visning</h3>
-                    <p className="text-sm text-ink-dim mb-4">
-                      På mobile enheter fungerer PDF-visning best ved å åpne filen direkte.
-                    </p>
-                  </div>
-                  <PktButton
-                    onClick={() => {
-                      // Open PDF in new tab for mobile
-                      if (pdfPreviewUrl) {
-                        window.open(pdfPreviewUrl, '_blank');
-                      }
-                    }}
-                    skin="primary"
-                    size="large"
-                  >
-                    Åpne PDF i ny fane
-                  </PktButton>
-                  <p className="text-xs text-ink-dim mt-4">
-                    PDF-en vil åpnes i din enhets PDF-leser
-                  </p>
-                </div>
-              ) : (
-                /* Desktop: Use object tag for better compatibility */
-                <object
-                  data={pdfPreviewUrl || undefined}
-                  type="application/pdf"
-                  className="w-full h-full"
-                  aria-label="PDF Forhåndsvisning"
-                >
-                  <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                    <p className="text-ink-dim mb-4">
-                      Din nettleser støtter ikke PDF-visning direkte.
-                    </p>
-                    <PktButton
-                      onClick={handleDownloadPdfFromPreview}
-                      skin="primary"
-                    >
-                      Last ned PDF
-                    </PktButton>
-                  </div>
-                </object>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex justify-between items-center gap-4 mt-4 pt-4 border-t border-border-color">
-              <PktButton
-                onClick={handleDownloadPdfFromPreview}
-                skin="tertiary"
-                size="medium"
-              >
-                Last ned PDF
-              </PktButton>
-              <div className="flex gap-3">
-                <PktButton
-                  onClick={handleClosePdfPreview}
-                  skin="secondary"
-                  size="medium"
-                >
-                  Rediger søknad
-                </PktButton>
-                <PktButton
-                  onClick={() => {
-                    handleClosePdfPreview();
-                    // Scroll to submit button after closing
-                    setTimeout(() => {
-                      const submitButton = document.querySelector('[type="submit"]');
-                      submitButton?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 100);
-                  }}
-                  skin="primary"
-                  size="medium"
-                >
-                  {mode === 'process' ? 'Fortsett til vedtak' : 'Fortsett til innsending'}
-                </PktButton>
-              </div>
-            </div>
-          </div>
-        </div>
+      {showPdfPreview && (
+        <PDFPreviewModal
+          pdfBlob={pdfPreviewBlob}
+          onClose={handleClosePdfPreview}
+          onSubmit={handleSubmit}
+          mode={mode}
+        />
       )}
     </>
   );

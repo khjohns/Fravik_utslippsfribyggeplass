@@ -436,11 +436,11 @@ export const generateFravikPdf = async (data: FormData): Promise<void> => {
 };
 
 /**
- * Generate PDF blob for preview (returns blob URL instead of downloading)
+ * Generate PDF blob for preview (returns blob directly for react-pdf)
  */
-export const generateFravikPdfBlob = async (data: FormData): Promise<string> => {
+export const generateFravikPdfBlob = async (data: FormData): Promise<Blob> => {
   const blob = await pdf(<FravikPdfDocument data={data} />).toBlob();
-  return URL.createObjectURL(blob);
+  return blob;
 };
 
 export default FravikPdfDocument;
