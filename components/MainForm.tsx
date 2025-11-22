@@ -131,6 +131,17 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
   // PDF Preview Modal state
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+      setIsMobileDevice(isMobile);
+    };
+    checkMobile();
+  }, []);
 
   // Load initial data when in process mode
   useEffect(() => {
@@ -1234,13 +1245,56 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
             </div>
 
             {/* PDF Viewer */}
-            <div className="flex-grow bg-gray-100 overflow-hidden rounded border border-border-color">
-              <iframe
-                src={pdfPreviewUrl}
-                className="w-full h-full"
-                title="PDF Forhåndsvisning"
-                style={{ border: 'none' }}
-              />
+            <div className="flex-grow bg-gray-100 overflow-hidden rounded border border-border-color relative">
+              {isMobileDevice ? (
+                /* Mobile: Show download prompt instead of embed */
+                <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                  <div className="mb-6">
+                    <svg className="w-20 h-20 mx-auto text-pri mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <h3 className="text-lg font-semibold text-ink mb-2">PDF klar til visning</h3>
+                    <p className="text-sm text-ink-dim mb-4">
+                      På mobile enheter fungerer PDF-visning best ved å åpne filen direkte.
+                    </p>
+                  </div>
+                  <PktButton
+                    onClick={() => {
+                      // Open PDF in new tab for mobile
+                      if (pdfPreviewUrl) {
+                        window.open(pdfPreviewUrl, '_blank');
+                      }
+                    }}
+                    skin="primary"
+                    size="large"
+                  >
+                    Åpne PDF i ny fane
+                  </PktButton>
+                  <p className="text-xs text-ink-dim mt-4">
+                    PDF-en vil åpnes i din enhets PDF-leser
+                  </p>
+                </div>
+              ) : (
+                /* Desktop: Use object tag for better compatibility */
+                <object
+                  data={pdfPreviewUrl || undefined}
+                  type="application/pdf"
+                  className="w-full h-full"
+                  aria-label="PDF Forhåndsvisning"
+                >
+                  <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                    <p className="text-ink-dim mb-4">
+                      Din nettleser støtter ikke PDF-visning direkte.
+                    </p>
+                    <PktButton
+                      onClick={handleDownloadPdfFromPreview}
+                      skin="primary"
+                    >
+                      Last ned PDF
+                    </PktButton>
+                  </div>
+                </object>
+              )}
             </div>
 
             {/* Modal Footer */}
