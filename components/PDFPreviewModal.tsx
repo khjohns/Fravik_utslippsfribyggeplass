@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { PktButton } from '@oslokommune/punkt-react';
 
-// Sett opp worker (viktig for ytelse)
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Import worker locally for better Safari compatibility
+// Using Vite's ?url import to get the bundled worker URL
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+// Sett opp worker (viktig for ytelse og Safari-kompatibilitet)
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface PDFPreviewModalProps {
   pdfBlob: Blob | null;
@@ -110,10 +114,6 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
               file={pdfUrl}
               onLoadSuccess={onDocumentLoadSuccess}
               onLoadError={onDocumentLoadError}
-              options={{
-                cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
-                cMapPacked: true,
-              }}
               loading={
                 <div className="flex flex-col items-center justify-center h-64 p-10">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pri mb-4"></div>
