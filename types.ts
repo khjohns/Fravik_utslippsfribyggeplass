@@ -67,8 +67,25 @@ export interface FormData {
 
   // Processing Tab (Internal use - Oslobygg KF)
   processing: {
+    // Overall application status
+    status: 'submitted' | 'awaiting_boi_review' | 'awaiting_ent_revision' | 'awaiting_pl_review' | 'awaiting_group_review' | 'awaiting_owner_decision' | 'approved' | 'partially_approved' | 'rejected' | '';
+
+    // BOI Advisor Review (Section 5)
+    boiDocumentationSufficient: 'yes' | 'no' | '';
+    boiAssessment: string; // Either recommendation or request for more documentation
+    boiRecommendation: 'approved' | 'partially_approved' | 'rejected' | ''; // Only if 'yes' above
+
+    // Project Leader Review (Section 6)
+    plDocumentationSufficient: 'yes' | 'no' | '';
+    plAssessment: string; // Either recommendation or request for more documentation
+    plRecommendation: 'approved' | 'partially_approved' | 'rejected' | ''; // Only if 'yes' above
+
+    // Working Group Assessment (Section 7)
+    groupRecommendation: 'approved' | 'partially_approved' | 'rejected' | '';
     groupAssessment: string;
-    projectLeaderDecision: 'approved' | 'rejected' | '';
-    decisionComment: string;
+
+    // Project Owner Decision (Section 8)
+    ownerAgreesWithGroup: 'yes' | 'no' | '';
+    ownerJustification: string; // Only required if 'no' above
   };
 }

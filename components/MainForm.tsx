@@ -78,9 +78,17 @@ const exampleData: FormData = {
   advisorAssessment: 'Rådgiver i BOI har vurdert markedsundersøkelsen som grundig og bekrefter at det for øyeblikket er utfordringer med levering av elektriske maskiner i denne størrelsesklassen. Rådgiver støtter søknaden under forutsetning av at avbøtende tiltak (HVO100) benyttes.',
   advisorAttachment: null,
   processing: {
+    status: 'approved',
+    boiDocumentationSufficient: 'yes',
+    boiAssessment: 'Markedsundersøkelsen er grundig og bekrefter utfordringer med leveringstid. Dokumentasjonen er tilstrekkelig.',
+    boiRecommendation: 'approved',
+    plDocumentationSufficient: 'yes',
+    plAssessment: 'Prosjektleder støtter rådgivers anbefaling. Søknaden er godt begrunnet og nødvendig for prosjektets fremdrift.',
+    plRecommendation: 'approved',
+    groupRecommendation: 'approved',
     groupAssessment: 'Arbeidsgruppen har gjennomgått søknaden og dokumentasjonen. Vi bekrefter at markedsundersøkelsen er grundig utført og at det foreligger reelle utfordringer med tilgjengelighet av elektriske alternativer.',
-    projectLeaderDecision: 'approved',
-    decisionComment: 'Søknaden godkjennes under forutsetning av at HVO100 benyttes og at det søkes om elektrisk maskin ved neste anledning.',
+    ownerAgreesWithGroup: 'yes',
+    ownerJustification: '',
   }
 };
 
@@ -110,9 +118,17 @@ const initialFormData: FormData = {
   advisorAssessment: '',
   advisorAttachment: null,
   processing: {
+    status: '',
+    boiDocumentationSufficient: '',
+    boiAssessment: '',
+    boiRecommendation: '',
+    plDocumentationSufficient: '',
+    plAssessment: '',
+    plRecommendation: '',
+    groupRecommendation: '',
     groupAssessment: '',
-    projectLeaderDecision: '',
-    decisionComment: '',
+    ownerAgreesWithGroup: '',
+    ownerJustification: '',
   }
 };
 
@@ -1024,96 +1040,289 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
           {/* Helper text for internal users */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>Obs:</strong> Denne fanen er kun for intern bruk av Oslobygg KF. Her skal arbeidsgruppen og prosjektleder registrere sin vurdering og beslutning.
+              <strong>Obs:</strong> Denne fanen er kun for intern bruk av Oslobygg KF. Her skal rådgiver, prosjektleder, arbeidsgruppe og prosjekteier registrere sine vurderinger.
             </p>
           </div>
 
-        {/* Section 5 - Moved to Processing Tab */}
+          {/* Status Indicator */}
+          {formData.processing.status && (
+            <div className="bg-gray-50 border-l-4 border-pri rounded-lg p-4">
+              <p className="text-sm font-medium text-ink">
+                📋 Status: <span className="text-pri font-semibold">
+                  {formData.processing.status === 'submitted' && 'Innsendt'}
+                  {formData.processing.status === 'awaiting_boi_review' && 'Venter på BOI-vurdering'}
+                  {formData.processing.status === 'awaiting_ent_revision' && 'Venter på oppdatering fra ENT'}
+                  {formData.processing.status === 'awaiting_pl_review' && 'Venter på prosjektleder-vurdering'}
+                  {formData.processing.status === 'awaiting_group_review' && 'Venter på arbeidsgruppens vurdering'}
+                  {formData.processing.status === 'awaiting_owner_decision' && 'Venter på prosjekteiers beslutning'}
+                  {formData.processing.status === 'approved' && 'Godkjent ✅'}
+                  {formData.processing.status === 'partially_approved' && 'Delvis godkjent ⚠️'}
+                  {formData.processing.status === 'rejected' && 'Avslått ❌'}
+                </span>
+              </p>
+            </div>
+          )}
+
+        {/* Section 5 - BOI Advisor Review */}
         <fieldset ref={section5Ref} data-section="5" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-5-heading">
-            <legend id="section-5-heading" className="text-lg font-semibold text-pri px-2">5. Vurdering fra rådgiver</legend>
+            <legend id="section-5-heading" className="text-lg font-semibold text-pri px-2">5. Vurdering fra rådgiver (BOI)</legend>
             <div className="mt-4 space-y-6">
-                 <PktTextarea
-                    id="advisorAssessment"
-                    label="Vurdering fra rådgiver i Bærekraft og Innovasjon (BOI)"
-                    name="advisorAssessment"
-                    value={formData.advisorAssessment}
-                    onChange={handleAdvisorAssessmentChange}
-                    placeholder="Søker skal her lime inn skriftlig vurdering mottatt fra BOI."
-                    rows={6}
-                    fullwidth
-                />
-
-                <div className="relative flex items-center">
-                    <div className="flex-grow border-t border-border-color"></div>
-                    <span className="flex-shrink mx-4 text-muted">ELLER</span>
-                    <div className="flex-grow border-t border-border-color"></div>
+              <div>
+                <label className="block text-sm font-medium text-ink-dim mb-2">
+                  Er innlevert dokumentasjon vurdert tilstrekkelig til å foreta en vurdering?
+                </label>
+                <div className="mt-2 flex flex-col gap-y-2">
+                  <PktRadioButton
+                    id="boi-sufficient-yes"
+                    name="boiDocumentationSufficient"
+                    value="yes"
+                    label="Ja - gi anbefaling"
+                    checked={formData.processing.boiDocumentationSufficient === 'yes'}
+                    onChange={handleProcessingChange}
+                  />
+                  <PktRadioButton
+                    id="boi-sufficient-no"
+                    name="boiDocumentationSufficient"
+                    value="no"
+                    label="Nei - be ENT om mer dokumentasjon"
+                    checked={formData.processing.boiDocumentationSufficient === 'no'}
+                    onChange={handleProcessingChange}
+                  />
                 </div>
+              </div>
 
-                <FileUploadField 
-                    label="Last opp vurdering fra rådgiver (hvis du har den som fil)"
-                    id="advisorAttachment"
-                    onChange={handleAdvisorAttachmentChange}
-                    fileName={advisorAttachmentName}
-                />
-                {advisorValidationError && <p className="text-center text-sm text-warn">{advisorValidationError}</p>}
+              <PktTextarea
+                id="boiAssessment"
+                label={formData.processing.boiDocumentationSufficient === 'yes' ? 'Anbefaling fra rådgiver' : 'Be om mer dokumentasjon'}
+                name="boiAssessment"
+                value={formData.processing.boiAssessment}
+                onChange={handleProcessingChange}
+                placeholder={formData.processing.boiDocumentationSufficient === 'yes'
+                  ? 'Skriv din anbefaling her...'
+                  : 'Beskriv hvilken dokumentasjon som mangler...'}
+                rows={6}
+                fullwidth
+              />
+
+              {/* Show recommendation checkboxes only if documentation is sufficient */}
+              {formData.processing.boiDocumentationSufficient === 'yes' && (
+                <div>
+                  <label className="block text-sm font-medium text-ink-dim mb-2">
+                    Anbefaling
+                  </label>
+                  <div className="mt-2 flex flex-col gap-y-2">
+                    <PktRadioButton
+                      id="boi-rec-approved"
+                      name="boiRecommendation"
+                      value="approved"
+                      label="Godkjent"
+                      checked={formData.processing.boiRecommendation === 'approved'}
+                      onChange={handleProcessingChange}
+                    />
+                    <PktRadioButton
+                      id="boi-rec-partial"
+                      name="boiRecommendation"
+                      value="partially_approved"
+                      label="Delvis godkjent"
+                      checked={formData.processing.boiRecommendation === 'partially_approved'}
+                      onChange={handleProcessingChange}
+                    />
+                    <PktRadioButton
+                      id="boi-rec-rejected"
+                      name="boiRecommendation"
+                      value="rejected"
+                      label="Avslått"
+                      checked={formData.processing.boiRecommendation === 'rejected'}
+                      onChange={handleProcessingChange}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
         </fieldset>
 
-        {/* Section 6 - Working Group Assessment */}
+        {/* Section 6 - Project Leader Review */}
         <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-6-heading">
-          <legend id="section-6-heading" className="text-lg font-semibold text-pri px-2">Arbeidsgruppens vurdering</legend>
-          <div className="mt-4">
-            <PktTextarea
-              id="groupAssessment"
-              label="Vurdering fra arbeidsgruppen"
-              name="groupAssessment"
-              value={formData.processing.groupAssessment}
-              onChange={handleProcessingChange}
-              placeholder="Skriv arbeidsgruppens vurdering av søknaden her..."
-              rows={6}
-              fullwidth
-            />
-          </div>
-        </fieldset>
-
-        {/* Section 7 - Project Leader Decision */}
-        <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-7-heading">
-          <legend id="section-7-heading" className="text-lg font-semibold text-pri px-2">Prosjektleders beslutning</legend>
+          <legend id="section-6-heading" className="text-lg font-semibold text-pri px-2">6. Vurdering fra prosjektleder</legend>
           <div className="mt-4 space-y-6">
             <div>
               <label className="block text-sm font-medium text-ink-dim mb-2">
-                Beslutning
+                Er innlevert dokumentasjon vurdert tilstrekkelig til å foreta en vurdering?
               </label>
               <div className="mt-2 flex flex-col gap-y-2">
                 <PktRadioButton
-                  id="decision-approved"
-                  name="projectLeaderDecision"
-                  value="approved"
-                  label="Godkjent"
-                  checked={formData.processing.projectLeaderDecision === 'approved'}
+                  id="pl-sufficient-yes"
+                  name="plDocumentationSufficient"
+                  value="yes"
+                  label="Ja - gi anbefaling"
+                  checked={formData.processing.plDocumentationSufficient === 'yes'}
                   onChange={handleProcessingChange}
                 />
                 <PktRadioButton
-                  id="decision-rejected"
-                  name="projectLeaderDecision"
-                  value="rejected"
-                  label="Avslått"
-                  checked={formData.processing.projectLeaderDecision === 'rejected'}
+                  id="pl-sufficient-no"
+                  name="plDocumentationSufficient"
+                  value="no"
+                  label="Nei - be ENT om mer dokumentasjon"
+                  checked={formData.processing.plDocumentationSufficient === 'no'}
                   onChange={handleProcessingChange}
                 />
               </div>
             </div>
 
             <PktTextarea
-              id="decisionComment"
-              label="Kommentar til beslutning"
-              name="decisionComment"
-              value={formData.processing.decisionComment}
+              id="plAssessment"
+              label={formData.processing.plDocumentationSufficient === 'yes' ? 'Anbefaling fra prosjektleder' : 'Be om mer dokumentasjon'}
+              name="plAssessment"
+              value={formData.processing.plAssessment}
               onChange={handleProcessingChange}
-              placeholder="Eventuelle kommentarer til beslutningen..."
-              rows={4}
+              placeholder={formData.processing.plDocumentationSufficient === 'yes'
+                ? 'Skriv din anbefaling her...'
+                : 'Beskriv hvilken dokumentasjon som mangler...'}
+              rows={6}
               fullwidth
             />
+
+            {/* Show recommendation checkboxes only if documentation is sufficient */}
+            {formData.processing.plDocumentationSufficient === 'yes' && (
+              <div>
+                <label className="block text-sm font-medium text-ink-dim mb-2">
+                  Anbefaling
+                </label>
+                <div className="mt-2 flex flex-col gap-y-2">
+                  <PktRadioButton
+                    id="pl-rec-approved"
+                    name="plRecommendation"
+                    value="approved"
+                    label="Godkjent"
+                    checked={formData.processing.plRecommendation === 'approved'}
+                    onChange={handleProcessingChange}
+                  />
+                  <PktRadioButton
+                    id="pl-rec-partial"
+                    name="plRecommendation"
+                    value="partially_approved"
+                    label="Delvis godkjent"
+                    checked={formData.processing.plRecommendation === 'partially_approved'}
+                    onChange={handleProcessingChange}
+                  />
+                  <PktRadioButton
+                    id="pl-rec-rejected"
+                    name="plRecommendation"
+                    value="rejected"
+                    label="Avslått"
+                    checked={formData.processing.plRecommendation === 'rejected'}
+                    onChange={handleProcessingChange}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </fieldset>
+
+        {/* Section 7 - Working Group Assessment */}
+        <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-7-heading">
+          <legend id="section-7-heading" className="text-lg font-semibold text-pri px-2">7. Arbeidsgruppens vurdering</legend>
+          <div className="mt-4 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-ink-dim mb-2">
+                Arbeidsgruppens innstilling
+              </label>
+              <div className="mt-2 flex flex-col gap-y-2">
+                <PktRadioButton
+                  id="group-rec-approved"
+                  name="groupRecommendation"
+                  value="approved"
+                  label="Godkjent"
+                  checked={formData.processing.groupRecommendation === 'approved'}
+                  onChange={handleProcessingChange}
+                />
+                <PktRadioButton
+                  id="group-rec-partial"
+                  name="groupRecommendation"
+                  value="partially_approved"
+                  label="Delvis godkjent"
+                  checked={formData.processing.groupRecommendation === 'partially_approved'}
+                  onChange={handleProcessingChange}
+                />
+                <PktRadioButton
+                  id="group-rec-rejected"
+                  name="groupRecommendation"
+                  value="rejected"
+                  label="Avslått"
+                  checked={formData.processing.groupRecommendation === 'rejected'}
+                  onChange={handleProcessingChange}
+                />
+              </div>
+            </div>
+
+            <PktTextarea
+              id="groupAssessment"
+              label="Begrunnelse"
+              name="groupAssessment"
+              value={formData.processing.groupAssessment}
+              onChange={handleProcessingChange}
+              placeholder="Skriv arbeidsgruppens begrunnelse her..."
+              rows={6}
+              fullwidth
+            />
+          </div>
+        </fieldset>
+
+        {/* Section 8 - Project Owner Decision */}
+        <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-8-heading">
+          <legend id="section-8-heading" className="text-lg font-semibold text-pri px-2">8. Prosjekteiers beslutning</legend>
+          <div className="mt-4 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-ink-dim mb-2">
+                Er prosjekteier enig i arbeidsgruppens vurdering/innstilling?
+              </label>
+              <div className="mt-2 flex flex-col gap-y-2">
+                <PktRadioButton
+                  id="owner-agrees-yes"
+                  name="ownerAgreesWithGroup"
+                  value="yes"
+                  label="Ja"
+                  checked={formData.processing.ownerAgreesWithGroup === 'yes'}
+                  onChange={handleProcessingChange}
+                />
+                <PktRadioButton
+                  id="owner-agrees-no"
+                  name="ownerAgreesWithGroup"
+                  value="no"
+                  label="Nei"
+                  checked={formData.processing.ownerAgreesWithGroup === 'no'}
+                  onChange={handleProcessingChange}
+                />
+              </div>
+            </div>
+
+            {/* Show justification field only if owner disagrees */}
+            {formData.processing.ownerAgreesWithGroup === 'no' && (
+              <PktTextarea
+                id="ownerJustification"
+                label="Begrunnelse (påkrevd ved uenighet)"
+                name="ownerJustification"
+                value={formData.processing.ownerJustification}
+                onChange={handleProcessingChange}
+                placeholder="Begrunn hvorfor du er uenig i arbeidsgruppens vurdering..."
+                rows={6}
+                fullwidth
+                required
+              />
+            )}
+
+            {/* Show final decision summary */}
+            {formData.processing.ownerAgreesWithGroup === 'yes' && formData.processing.groupRecommendation && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm text-green-800">
+                  ✅ Endelig beslutning: <strong>
+                    {formData.processing.groupRecommendation === 'approved' && 'Godkjent'}
+                    {formData.processing.groupRecommendation === 'partially_approved' && 'Delvis godkjent'}
+                    {formData.processing.groupRecommendation === 'rejected' && 'Avslått'}
+                  </strong> (i samsvar med arbeidsgruppens innstilling)
+                </p>
+              </div>
+            )}
           </div>
         </fieldset>
         </div>
