@@ -43,6 +43,10 @@ export interface FormData {
   isUrgent: boolean;
   urgencyReason: string;
 
+  // Timestamps
+  submittedAt?: string; // ISO 8601 timestamp when application was first submitted
+  lastUpdatedAt?: string; // ISO 8601 timestamp when application was last updated by ENT
+
   // Section 3A
   machines: Machine[];
 
@@ -74,18 +78,26 @@ export interface FormData {
     boiDocumentationSufficient: 'yes' | 'no' | '';
     boiAssessment: string; // Either recommendation or request for more documentation
     boiRecommendation: 'approved' | 'partially_approved' | 'rejected' | ''; // Only if 'yes' above
+    boiReviewedAt?: string; // ISO 8601 timestamp when BOI completed review
+    boiReviewedBy?: string; // Name of BOI advisor
 
     // Project Leader Review (Section 6)
     plDocumentationSufficient: 'yes' | 'no' | '';
     plAssessment: string; // Either recommendation or request for more documentation
     plRecommendation: 'approved' | 'partially_approved' | 'rejected' | ''; // Only if 'yes' above
+    plReviewedAt?: string; // ISO 8601 timestamp when PL completed review
+    plReviewedBy?: string; // Name of project leader
 
     // Working Group Assessment (Section 7)
     groupRecommendation: 'approved' | 'partially_approved' | 'rejected' | '';
     groupAssessment: string;
+    groupReviewedAt?: string; // ISO 8601 timestamp when group completed assessment
+    groupReviewedBy?: string; // Names of group members
 
     // Project Owner Decision (Section 8)
     ownerAgreesWithGroup: 'yes' | 'no' | '';
     ownerJustification: string; // Only required if 'no' above
+    ownerDecidedAt?: string; // ISO 8601 timestamp when owner made decision
+    ownerDecidedBy?: string; // Name of project owner
   };
 }

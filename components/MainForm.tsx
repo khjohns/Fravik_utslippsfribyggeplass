@@ -1,7 +1,7 @@
 // Fix: Removed invalid CDATA wrapper from the file content.
 import React, { useState, useRef, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker, PktStepper, PktStep } from '@oslokommune/punkt-react';
+import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker, PktStepper, PktStep, PktTag } from '@oslokommune/punkt-react';
 import type { FormData, Machine, SubmissionMeta } from '../types';
 import { FileUploadField } from './form/Fields';
 import MachineGallery from './MachineGallery';
@@ -63,6 +63,8 @@ const exampleData: FormData = {
   applicationType: 'machine',
   isUrgent: true,
   urgencyReason: 'Uforutsett hendelse på byggeplass krevde umiddelbar endring av utstyr. Søknad sendes så raskt som mulig etter at behovet oppstod.',
+  submittedAt: new Date('2024-08-01T10:30:00').toISOString(),
+  lastUpdatedAt: new Date('2024-08-02T14:15:00').toISOString(),
   machines: [exampleMachine],
   infrastructure: {
     powerAccessDescription: '',
@@ -82,13 +84,21 @@ const exampleData: FormData = {
     boiDocumentationSufficient: 'yes',
     boiAssessment: 'Markedsundersøkelsen er grundig og bekrefter utfordringer med leveringstid. Dokumentasjonen er tilstrekkelig.',
     boiRecommendation: 'approved',
+    boiReviewedAt: new Date('2024-08-03T09:15:00').toISOString(),
+    boiReviewedBy: 'Ola Hansen (BOI)',
     plDocumentationSufficient: 'yes',
     plAssessment: 'Prosjektleder støtter rådgivers anbefaling. Søknaden er godt begrunnet og nødvendig for prosjektets fremdrift.',
     plRecommendation: 'approved',
+    plReviewedAt: new Date('2024-08-04T11:30:00').toISOString(),
+    plReviewedBy: 'Line Olsen',
     groupRecommendation: 'approved',
     groupAssessment: 'Arbeidsgruppen har gjennomgått søknaden og dokumentasjonen. Vi bekrefter at markedsundersøkelsen er grundig utført og at det foreligger reelle utfordringer med tilgjengelighet av elektriske alternativer.',
+    groupReviewedAt: new Date('2024-08-05T13:45:00').toISOString(),
+    groupReviewedBy: 'Arbeidsgruppe for utslippsfri byggeplass',
     ownerAgreesWithGroup: 'yes',
     ownerJustification: '',
+    ownerDecidedAt: new Date('2024-08-06T15:00:00').toISOString(),
+    ownerDecidedBy: 'Per Andersen',
   }
 };
 
@@ -103,6 +113,8 @@ const initialFormData: FormData = {
   applicationType: '',
   isUrgent: false,
   urgencyReason: '',
+  submittedAt: undefined,
+  lastUpdatedAt: undefined,
   machines: [],
   infrastructure: {
     powerAccessDescription: '',
@@ -122,13 +134,21 @@ const initialFormData: FormData = {
     boiDocumentationSufficient: '',
     boiAssessment: '',
     boiRecommendation: '',
+    boiReviewedAt: undefined,
+    boiReviewedBy: undefined,
     plDocumentationSufficient: '',
     plAssessment: '',
     plRecommendation: '',
+    plReviewedAt: undefined,
+    plReviewedBy: undefined,
     groupRecommendation: '',
     groupAssessment: '',
+    groupReviewedAt: undefined,
+    groupReviewedBy: undefined,
     ownerAgreesWithGroup: '',
     ownerJustification: '',
+    ownerDecidedAt: undefined,
+    ownerDecidedBy: undefined,
   }
 };
 
@@ -224,6 +244,28 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
   const section3Ref = useRef<HTMLDivElement>(null);
   const section4Ref = useRef<HTMLFieldSetElement>(null);
   const section5Ref = useRef<HTMLFieldSetElement>(null);
+
+  /**
+   * Format ISO timestamp to Norwegian date/time
+   */
+  const formatTimestamp = (isoTimestamp?: string): string => {
+    if (!isoTimestamp) return '';
+    try {
+      const date = new Date(isoTimestamp);
+      const dateStr = date.toLocaleDateString('no-NO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      const timeStr = date.toLocaleTimeString('no-NO', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      return `${dateStr} kl. ${timeStr}`;
+    } catch {
+      return '';
+    }
+  };
 
   // Scroll Spy: Automatically update activeStep based on visible section
   useEffect(() => {
@@ -766,6 +808,23 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
         {/* Section 1 */}
         <fieldset ref={section1Ref} data-section="1" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-1-heading">
             <legend id="section-1-heading" className="text-lg font-semibold text-pri px-2">1. Prosjektinformasjon</legend>
+
+            {/* Timestamp tags */}
+            {(formData.submittedAt || formData.lastUpdatedAt) && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {formData.submittedAt && (
+                  <PktTag size="medium" iconName="clock" skin="yellow">
+                    <span>Innsendt: {formatTimestamp(formData.submittedAt)}</span>
+                  </PktTag>
+                )}
+                {formData.lastUpdatedAt && (
+                  <PktTag size="medium" iconName="clock" skin="yellow">
+                    <span>Sist oppdatert: {formatTimestamp(formData.lastUpdatedAt)}</span>
+                  </PktTag>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mt-4">
                 <PktTextinput
                     id="projectName"
@@ -1066,6 +1125,16 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
         {/* Section 5 - BOI Advisor Review */}
         <fieldset ref={section5Ref} data-section="5" className="bg-card-bg border border-border-color rounded-lg p-6 scroll-mt-28" role="region" aria-labelledby="section-5-heading">
             <legend id="section-5-heading" className="text-lg font-semibold text-pri px-2">5. Vurdering fra rådgiver (BOI)</legend>
+
+            {/* Timestamp tag */}
+            {formData.processing.boiReviewedAt && (
+              <div className="mt-4">
+                <PktTag size="medium" iconName="clock" skin="yellow">
+                  <span>Vurdert: {formatTimestamp(formData.processing.boiReviewedAt)}{formData.processing.boiReviewedBy && ` av ${formData.processing.boiReviewedBy}`}</span>
+                </PktTag>
+              </div>
+            )}
+
             <div className="mt-4 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-ink-dim mb-2">
@@ -1144,6 +1213,16 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
         {/* Section 6 - Project Leader Review */}
         <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-6-heading">
           <legend id="section-6-heading" className="text-lg font-semibold text-pri px-2">6. Vurdering fra prosjektleder</legend>
+
+          {/* Timestamp tag */}
+          {formData.processing.plReviewedAt && (
+            <div className="mt-4">
+              <PktTag size="medium" iconName="clock" skin="yellow">
+                <span>Vurdert: {formatTimestamp(formData.processing.plReviewedAt)}{formData.processing.plReviewedBy && ` av ${formData.processing.plReviewedBy}`}</span>
+              </PktTag>
+            </div>
+          )}
+
           <div className="mt-4 space-y-6">
             <div>
               <label className="block text-sm font-medium text-ink-dim mb-2">
@@ -1222,6 +1301,16 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
         {/* Section 7 - Working Group Assessment */}
         <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-7-heading">
           <legend id="section-7-heading" className="text-lg font-semibold text-pri px-2">7. Arbeidsgruppens vurdering</legend>
+
+          {/* Timestamp tag */}
+          {formData.processing.groupReviewedAt && (
+            <div className="mt-4">
+              <PktTag size="medium" iconName="clock" skin="yellow">
+                <span>Vurdert: {formatTimestamp(formData.processing.groupReviewedAt)}{formData.processing.groupReviewedBy && ` av ${formData.processing.groupReviewedBy}`}</span>
+              </PktTag>
+            </div>
+          )}
+
           <div className="mt-4 space-y-6">
             <div>
               <label className="block text-sm font-medium text-ink-dim mb-2">
@@ -1271,6 +1360,16 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
         {/* Section 8 - Project Owner Decision */}
         <fieldset className="bg-card-bg border border-border-color rounded-lg p-6" role="region" aria-labelledby="section-8-heading">
           <legend id="section-8-heading" className="text-lg font-semibold text-pri px-2">8. Prosjekteiers beslutning</legend>
+
+          {/* Timestamp tag */}
+          {formData.processing.ownerDecidedAt && (
+            <div className="mt-4">
+              <PktTag size="medium" iconName="clock" skin="yellow">
+                <span>Besluttet: {formatTimestamp(formData.processing.ownerDecidedAt)}{formData.processing.ownerDecidedBy && ` av ${formData.processing.ownerDecidedBy}`}</span>
+              </PktTag>
+            </div>
+          )}
+
           <div className="mt-4 space-y-6">
             <div>
               <label className="block text-sm font-medium text-ink-dim mb-2">
