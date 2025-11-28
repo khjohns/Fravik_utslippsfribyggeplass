@@ -210,17 +210,10 @@ const TextBlock: React.FC<{ title: string; content: string }> = ({ title, conten
 
 // --- LOGIKK-HJELPERE ---
 
-const getPrimaryDriverLabel = (driver: string) =>
-  ({
-    'Teknisk/Markedsmessig hindring': 'Teknisk/Markedsmessig hindring',
-    'Kostnad': 'Kostnad',
-    'Fremdrift': 'Fremdrift',
-  }[driver] || driver || '—');
-
 const getApplicationTypeLabel = (type: string) =>
   ({
-    'machine': 'Maskiner',
-    'infrastructure': 'Anleggsstrøm',
+    'machine': 'Spesifikk maskin / kjøretøy',
+    'infrastructure': 'Elektrisk infrastruktur på byggeplass',
   }[type] || type || '—');
 
 const getMachineTypeLabel = (machine: Machine) =>
@@ -259,12 +252,8 @@ const ProjectInfoSection: React.FC<{ data: FormData }> = ({ data }) => (
         <Text style={styles.infoValue}>{data.mainContractor || '—'}</Text>
       </View>
       <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Kontraktsgrunnlag:</Text>
-        <Text style={styles.infoValue}>{data.contractBasis || '—'}</Text>
-      </View>
-      <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Innsendt av:</Text>
-        <Text style={styles.infoValue}>{data.submittedBy || '—'}</Text>
+        <Text style={styles.infoLabel}>Rammeavtale:</Text>
+        <Text style={styles.infoValue}>{data.frameworkAgreement || '—'}</Text>
       </View>
       <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>Navn på innsender:</Text>
@@ -280,7 +269,6 @@ const ProjectInfoSection: React.FC<{ data: FormData }> = ({ data }) => (
       <Text style={styles.mainTitle}>Søknadsdetaljer</Text>
       <View style={styles.table}>
         <TableRow label="Søknadstype" value={getApplicationTypeLabel(data.applicationType)} />
-        <TableRow label="Primær driver" value={getPrimaryDriverLabel(data.primaryDriver)} striped />
       </View>
       {data.isUrgent && data.urgencyReason && (
         <TextBlock title="Begrunnelse for hastebehandling:" content={data.urgencyReason} />
@@ -347,7 +335,7 @@ const ConsequencesAndAdvisorSection: React.FC<{ data: FormData }> = ({ data }) =
         <TextBlock title="Vurdering fra rådgiver:" content={data.advisorAssessment} />
       </View>
     )}
-    
+
     <View style={styles.metadataFooter}>
       <Text style={styles.metadataText}>
         Generert av: {data.submitterName || 'Ukjent'} | System: Fraviksøknad - Utslippsfri byggeplass | Oslo Kommune
@@ -356,17 +344,141 @@ const ConsequencesAndAdvisorSection: React.FC<{ data: FormData }> = ({ data }) =
   </View>
 );
 
+const ProcessingSection: React.FC<{ data: FormData }> = ({ data }) => {
+  const getRecommendationLabel = (rec: string) => {
+    if (rec === 'approved') return 'Godkjent ✅';
+    if (rec === 'partially_approved') return 'Delvis godkjent ⚠️';
+    if (rec === 'rejected') return 'Avslått ❌';
+    return '—';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      'submitted': 'Innsendt',
+      'awaiting_boi_review': 'Venter på BOI-vurdering',
+      'awaiting_ent_revision': 'Venter på oppdatering fra ENT',
+      'awaiting_pl_review': 'Venter på prosjektleder-vurdering',
+      'awaiting_group_review': 'Venter på arbeidsgruppens vurdering',
+      'awaiting_owner_decision': 'Venter på prosjekteiers beslutning',
+      'approved': 'Godkjent ✅',
+      'partially_approved': 'Delvis godkjent ⚠️',
+      'rejected': 'Avslått ❌',
+    };
+    return labels[status] || '—';
+  };
+
+  const hasProcessingData = data.processing.boiAssessment || data.processing.plAssessment || data.processing.groupAssessment || data.processing.ownerAgreesWithGroup;
+
+  if (!hasProcessingData) return null;
+
+  return (
+    <View>
+      <Text style={styles.mainTitle}>Saksbehandling (Intern)</Text>
+
+      {data.processing.status && (
+        <View style={styles.infoBox}>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Status:</Text>
+            <Text style={styles.infoValue}>{getStatusLabel(data.processing.status)}</Text>
+          </View>
+        </View>
+      )}
+
+      {/* BOI Vurdering */}
+      {data.processing.boiAssessment && (
+        <View style={{ marginTop: 15 }}>
+          <Text style={styles.textBlockTitle}>Rådgiver (BOI) vurdering:</Text>
+          <View style={styles.table}>
+            <TableRow
+              label="Dokumentasjon tilstrekkelig?"
+              value={data.processing.boiDocumentationSufficient === 'yes' ? 'Ja' : data.processing.boiDocumentationSufficient === 'no' ? 'Nei' : '—'}
+            />
+            {data.processing.boiRecommendation && (
+              <TableRow
+                label="Anbefaling"
+                value={getRecommendationLabel(data.processing.boiRecommendation)}
+                striped
+              />
+            )}
+          </View>
+          <TextBlock title="Vurdering:" content={data.processing.boiAssessment} />
+        </View>
+      )}
+
+      {/* PL Vurdering */}
+      {data.processing.plAssessment && (
+        <View style={{ marginTop: 15 }}>
+          <Text style={styles.textBlockTitle}>Prosjektleder vurdering:</Text>
+          <View style={styles.table}>
+            <TableRow
+              label="Dokumentasjon tilstrekkelig?"
+              value={data.processing.plDocumentationSufficient === 'yes' ? 'Ja' : data.processing.plDocumentationSufficient === 'no' ? 'Nei' : '—'}
+            />
+            {data.processing.plRecommendation && (
+              <TableRow
+                label="Anbefaling"
+                value={getRecommendationLabel(data.processing.plRecommendation)}
+                striped
+              />
+            )}
+          </View>
+          <TextBlock title="Vurdering:" content={data.processing.plAssessment} />
+        </View>
+      )}
+
+      {/* Arbeidsgruppen */}
+      {data.processing.groupAssessment && (
+        <View style={{ marginTop: 15 }}>
+          <Text style={styles.textBlockTitle}>Arbeidsgruppens vurdering:</Text>
+          <View style={styles.table}>
+            <TableRow
+              label="Innstilling"
+              value={getRecommendationLabel(data.processing.groupRecommendation)}
+            />
+          </View>
+          <TextBlock title="Begrunnelse:" content={data.processing.groupAssessment} />
+        </View>
+      )}
+
+      {/* Prosjekteier */}
+      {data.processing.ownerAgreesWithGroup && (
+        <View style={{ marginTop: 15 }}>
+          <Text style={styles.textBlockTitle}>Prosjekteiers beslutning:</Text>
+          <View style={styles.table}>
+            <TableRow
+              label="Enig med arbeidsgruppen?"
+              value={data.processing.ownerAgreesWithGroup === 'yes' ? 'Ja' : 'Nei'}
+            />
+          </View>
+          {data.processing.ownerJustification && (
+            <TextBlock title="Begrunnelse:" content={data.processing.ownerJustification} />
+          )}
+          {data.processing.ownerAgreesWithGroup === 'yes' && data.processing.groupRecommendation && (
+            <View style={[styles.infoBox, { marginTop: 10 }]}>
+              <Text style={{ fontSize: 10, fontWeight: 'bold' }}>
+                Endelig beslutning: {getRecommendationLabel(data.processing.groupRecommendation)}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
+  );
+};
+
 // --- HOVEDDOKUMENT ---
 
 const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
   const hasMachines = data.applicationType === 'machine' && data.machines.length > 0;
   const hasInfrastructure = data.applicationType === 'infrastructure';
+  const hasProcessingData = data.processing.boiAssessment || data.processing.plAssessment || data.processing.groupAssessment || data.processing.ownerAgreesWithGroup;
 
   // BEREGN ANTALL SIDER MANUELT
   // Side 1: Alltid Prosjektinfo
   // Side 2..N: Innhold (Maskiner eller Infrastruktur)
   // Side N+1: Konsekvenser og Rådgiver (Konklusjon)
-  
+  // Side N+2: Saksbehandling (hvis data finnes)
+
   let contentPages = 0;
   if (hasMachines) {
     // 1 side per maskin for oversiktens skyld
@@ -375,9 +487,9 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
     // Infrastruktur tar typisk 1 side
     contentPages = 1;
   }
-  
-  // Total: Startside + Innholdssider + Sluttside
-  const totalPages = 1 + contentPages + 1;
+
+  // Total: Startside + Innholdssider + Sluttside + (Processing hvis den finnes)
+  const totalPages = 1 + contentPages + 1 + (hasProcessingData ? 1 : 0);
 
   return (
     <Document
@@ -414,12 +526,21 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
         </Page>
       )}
 
-      {/* SISTE SIDE: KONSEKVENSER OG RÅDGIVER */}
+      {/* SIDE: KONSEKVENSER OG RÅDGIVER */}
       <Page size="A4" style={styles.page}>
         <Header />
         <ConsequencesAndAdvisorSection data={data} />
-        <Footer pageNumber={totalPages} totalPages={totalPages} />
+        <Footer pageNumber={hasProcessingData ? totalPages - 1 : totalPages} totalPages={totalPages} />
       </Page>
+
+      {/* SISTE SIDE: SAKSBEHANDLING (hvis data finnes) */}
+      {hasProcessingData && (
+        <Page size="A4" style={styles.page}>
+          <Header />
+          <ProcessingSection data={data} />
+          <Footer pageNumber={totalPages} totalPages={totalPages} />
+        </Page>
+      )}
     </Document>
   );
 };
