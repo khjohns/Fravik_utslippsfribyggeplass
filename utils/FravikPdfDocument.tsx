@@ -229,6 +229,25 @@ const getFuelLabel = (fuel: string) =>
     'Diesel (Euro 6)': 'Diesel (Euro 6)',
   }[fuel] || fuel || '—');
 
+const formatTimestamp = (isoTimestamp?: string): string => {
+  if (!isoTimestamp) return '—';
+  try {
+    const date = new Date(isoTimestamp);
+    const dateStr = date.toLocaleDateString('no-NO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    const timeStr = date.toLocaleTimeString('no-NO', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return `${dateStr} kl. ${timeStr}`;
+  } catch {
+    return '—';
+  }
+};
+
 // --- INNHOLDSSEKSJONER ---
 
 const ProjectInfoSection: React.FC<{ data: FormData }> = ({ data }) => (
@@ -263,6 +282,18 @@ const ProjectInfoSection: React.FC<{ data: FormData }> = ({ data }) => (
         <Text style={styles.infoLabel}>Frist for svar:</Text>
         <Text style={styles.infoValue}>{data.deadline || '—'}</Text>
       </View>
+      {data.submittedAt && (
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Innsendt:</Text>
+          <Text style={styles.infoValue}>{formatTimestamp(data.submittedAt)}</Text>
+        </View>
+      )}
+      {data.lastUpdatedAt && (
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Sist oppdatert:</Text>
+          <Text style={styles.infoValue}>{formatTimestamp(data.lastUpdatedAt)}</Text>
+        </View>
+      )}
     </View>
 
     <View>
@@ -400,6 +431,12 @@ const ProcessingSection: React.FC<{ data: FormData }> = ({ data }) => {
                 striped
               />
             )}
+            {data.processing.boiReviewedAt && (
+              <TableRow
+                label="Vurdert"
+                value={formatTimestamp(data.processing.boiReviewedAt) + (data.processing.boiReviewedBy ? ` av ${data.processing.boiReviewedBy}` : '')}
+              />
+            )}
           </View>
           <TextBlock title="Vurdering:" content={data.processing.boiAssessment} />
         </View>
@@ -421,6 +458,12 @@ const ProcessingSection: React.FC<{ data: FormData }> = ({ data }) => {
                 striped
               />
             )}
+            {data.processing.plReviewedAt && (
+              <TableRow
+                label="Vurdert"
+                value={formatTimestamp(data.processing.plReviewedAt) + (data.processing.plReviewedBy ? ` av ${data.processing.plReviewedBy}` : '')}
+              />
+            )}
           </View>
           <TextBlock title="Vurdering:" content={data.processing.plAssessment} />
         </View>
@@ -435,6 +478,13 @@ const ProcessingSection: React.FC<{ data: FormData }> = ({ data }) => {
               label="Innstilling"
               value={getRecommendationLabel(data.processing.groupRecommendation)}
             />
+            {data.processing.groupReviewedAt && (
+              <TableRow
+                label="Vurdert"
+                value={formatTimestamp(data.processing.groupReviewedAt) + (data.processing.groupReviewedBy ? ` av ${data.processing.groupReviewedBy}` : '')}
+                striped
+              />
+            )}
           </View>
           <TextBlock title="Begrunnelse:" content={data.processing.groupAssessment} />
         </View>
@@ -449,6 +499,13 @@ const ProcessingSection: React.FC<{ data: FormData }> = ({ data }) => {
               label="Enig med arbeidsgruppen?"
               value={data.processing.ownerAgreesWithGroup === 'yes' ? 'Ja' : 'Nei'}
             />
+            {data.processing.ownerDecidedAt && (
+              <TableRow
+                label="Besluttet"
+                value={formatTimestamp(data.processing.ownerDecidedAt) + (data.processing.ownerDecidedBy ? ` av ${data.processing.ownerDecidedBy}` : '')}
+                striped
+              />
+            )}
           </View>
           {data.processing.ownerJustification && (
             <TextBlock title="Begrunnelse:" content={data.processing.ownerJustification} />
