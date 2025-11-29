@@ -95,6 +95,12 @@ const exampleData: FormData = {
     groupAssessment: 'Arbeidsgruppen har gjennomgått søknaden og dokumentasjonen. Vi bekrefter at markedsundersøkelsen er grundig utført og at det foreligger reelle utfordringer med tilgjengelighet av elektriske alternativer.',
     groupReviewedAt: new Date('2024-08-05T13:45:00').toISOString(),
     groupReviewedBy: 'Arbeidsgruppe for utslippsfri byggeplass',
+    machineDecisions: {
+      [exampleMachine.id]: {
+        decision: 'approved',
+        comment: 'Godkjent under forutsetning av at HVO100 benyttes',
+      }
+    },
     ownerAgreesWithGroup: 'yes',
     ownerJustification: '',
     ownerDecidedAt: new Date('2024-08-06T15:00:00').toISOString(),
@@ -145,6 +151,7 @@ const initialFormData: FormData = {
     groupAssessment: '',
     groupReviewedAt: undefined,
     groupReviewedBy: undefined,
+    machineDecisions: {},
     ownerAgreesWithGroup: '',
     ownerJustification: '',
     ownerDecidedAt: undefined,
@@ -312,6 +319,56 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
     };
   }, []);
 
+  // Automatically calculate groupRecommendation based on individual machine decisions
+  useEffect(() => {
+    // Only calculate for machine applications with machines
+    if (formData.applicationType !== 'machine' || formData.machines.length === 0) {
+      return;
+    }
+
+    const decisions = formData.processing.machineDecisions;
+    if (!decisions) {
+      return;
+    }
+
+    // Get all machine decisions
+    const machineDecisions = formData.machines.map(m => decisions[m.id]?.decision).filter(Boolean);
+
+    // If no decisions have been made yet, don't update
+    if (machineDecisions.length === 0) {
+      return;
+    }
+
+    // Calculate overall recommendation
+    let newRecommendation: 'approved' | 'partially_approved' | 'rejected' | '' = '';
+
+    const approvedCount = machineDecisions.filter(d => d === 'approved').length;
+    const rejectedCount = machineDecisions.filter(d => d === 'rejected').length;
+    const totalDecisions = machineDecisions.length;
+
+    if (totalDecisions === formData.machines.length) {
+      // All machines have been decided
+      if (approvedCount === formData.machines.length) {
+        newRecommendation = 'approved';
+      } else if (rejectedCount === formData.machines.length) {
+        newRecommendation = 'rejected';
+      } else {
+        newRecommendation = 'partially_approved';
+      }
+
+      // Update groupRecommendation if it's different
+      if (newRecommendation !== formData.processing.groupRecommendation) {
+        setFormData(prev => ({
+          ...prev,
+          processing: {
+            ...prev.processing,
+            groupRecommendation: newRecommendation
+          }
+        }));
+      }
+    }
+  }, [formData.applicationType, formData.machines, formData.processing.machineDecisions, formData.processing.groupRecommendation]);
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string; value: string }}) => {
     const { name, value } = e.target;
 
@@ -353,6 +410,22 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
       processing: {
         ...prev.processing,
         [name]: value
+      }
+    }));
+  }, []);
+
+  const handleMachineDecisionChange = useCallback((machineId: string, field: 'decision' | 'comment', value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      processing: {
+        ...prev.processing,
+        machineDecisions: {
+          ...prev.processing.machineDecisions,
+          [machineId]: {
+            ...prev.processing.machineDecisions?.[machineId],
+            [field]: value
+          }
+        }
       }
     }));
   }, []);
@@ -1338,9 +1411,61 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
           )}
 
           <div className="mt-4 space-y-6">
+            {/* Machine-specific decisions (only for machine applications) */}
+            {formData.applicationType === 'machine' && formData.machines.length > 0 && (
+              <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 space-y-4">
+                <h4 className="font-medium text-ink">Vurdering per maskin</h4>
+                <p className="text-sm text-ink-dim">
+                  Arbeidsgruppen kan godkjenne eller avslå hver maskin individuelt. Den samlede innstillingen beregnes automatisk.
+                </p>
+                {formData.machines.map((machine, index) => (
+                  <div key={machine.id} className="bg-white border border-gray-300 rounded-lg p-4 space-y-3">
+                    <h5 className="font-medium text-ink">
+                      Maskin {index + 1}: {machine.type}{machine.otherType ? ` (${machine.otherType})` : ''}
+                    </h5>
+                    <div>
+                      <label className="block text-sm font-medium text-ink-dim mb-2">
+                        Beslutning
+                      </label>
+                      <div className="flex flex-col gap-y-2">
+                        <PktRadioButton
+                          id={`machine-${machine.id}-approved`}
+                          name={`machine-decision-${machine.id}`}
+                          value="approved"
+                          label="Godkjent"
+                          checked={formData.processing.machineDecisions?.[machine.id]?.decision === 'approved'}
+                          onChange={() => handleMachineDecisionChange(machine.id, 'decision', 'approved')}
+                        />
+                        <PktRadioButton
+                          id={`machine-${machine.id}-rejected`}
+                          name={`machine-decision-${machine.id}`}
+                          value="rejected"
+                          label="Avslått"
+                          checked={formData.processing.machineDecisions?.[machine.id]?.decision === 'rejected'}
+                          onChange={() => handleMachineDecisionChange(machine.id, 'decision', 'rejected')}
+                        />
+                      </div>
+                    </div>
+                    <PktTextarea
+                      id={`machine-comment-${machine.id}`}
+                      label="Vilkår eller kommentar (valgfritt)"
+                      name={`machine-comment-${machine.id}`}
+                      value={formData.processing.machineDecisions?.[machine.id]?.comment || ''}
+                      onChange={(e) => handleMachineDecisionChange(machine.id, 'comment', e.target.value)}
+                      placeholder="F.eks. 'Godkjent under forutsetning av at HVO100 benyttes'"
+                      rows={2}
+                      fullwidth
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-ink-dim mb-2">
-                Arbeidsgruppens innstilling
+                {formData.applicationType === 'machine' && formData.machines.length > 0
+                  ? 'Samlet innstilling (beregnes automatisk)'
+                  : 'Arbeidsgruppens innstilling'}
               </label>
               <div className="mt-2 flex flex-col gap-y-2">
                 <PktRadioButton
@@ -1350,6 +1475,7 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
                   label="Godkjent"
                   checked={formData.processing.groupRecommendation === 'approved'}
                   onChange={handleProcessingChange}
+                  disabled={formData.applicationType === 'machine' && formData.machines.length > 0}
                 />
                 <PktRadioButton
                   id="group-rec-partial"
@@ -1358,6 +1484,7 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
                   label="Delvis godkjent"
                   checked={formData.processing.groupRecommendation === 'partially_approved'}
                   onChange={handleProcessingChange}
+                  disabled={formData.applicationType === 'machine' && formData.machines.length > 0}
                 />
                 <PktRadioButton
                   id="group-rec-rejected"
@@ -1366,6 +1493,7 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
                   label="Avslått"
                   checked={formData.processing.groupRecommendation === 'rejected'}
                   onChange={handleProcessingChange}
+                  disabled={formData.applicationType === 'machine' && formData.machines.length > 0}
                 />
               </div>
             </div>
