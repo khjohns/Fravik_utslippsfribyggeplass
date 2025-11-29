@@ -1,7 +1,7 @@
 // Fix: Removed invalid CDATA wrapper from the file content.
 import React, { useState, useRef, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker, PktStepper, PktStep, PktTag } from '@oslokommune/punkt-react';
+import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioButton, PktDatepicker, PktStepper, PktStep, PktTag, PktAlert } from '@oslokommune/punkt-react';
 import type { FormData, Machine, SubmissionMeta } from '../types';
 import { FileUploadField } from './form/Fields';
 import MachineGallery from './MachineGallery';
@@ -549,61 +549,73 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
 
       case 'validating':
         return (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4" role="status" aria-live="polite" aria-atomic="true">
-            <p className="text-blue-800">Validerer skjemadata...</p>
-          </div>
+          <PktAlert
+            title="Validerer"
+            skin="info"
+            compact
+            ariaLive="polite"
+          >
+            <span>Validerer skjemadata...</span>
+          </PktAlert>
         );
 
       case 'submitting':
         return (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4" role="status" aria-live="polite" aria-atomic="true">
-            <p className="text-blue-800 mb-2">Sender inn søknad...</p>
-            <div className="w-full bg-blue-200 rounded-full h-2" role="progressbar" aria-valuenow={submissionState.progress} aria-valuemin={0} aria-valuemax={100} aria-label="Innsendingsprogress">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${submissionState.progress}%` }}
-              />
+          <PktAlert
+            title="Sender inn søknad"
+            skin="info"
+            compact
+            ariaLive="polite"
+          >
+            <div>
+              <div className="w-full bg-blue-200 rounded-full h-2 mb-2" role="progressbar" aria-valuenow={submissionState.progress} aria-valuemin={0} aria-valuemax={100} aria-label="Innsendingsprogress">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${submissionState.progress}%` }}
+                />
+              </div>
+              <span className="text-sm">Vennligst ikke lukk dette vinduet</span>
             </div>
-            <p className="text-sm text-blue-600 mt-2">
-              Vennligst ikke lukk dette vinduet
-            </p>
-          </div>
+          </PktAlert>
         );
 
       case 'success':
         return (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4" role="status" aria-live="polite" aria-atomic="true">
-            <h3 className="text-green-800 font-semibold mb-2" id="success-heading">
-              ✅ Søknad sendt inn!
-            </h3>
-            <p className="text-green-700" aria-describedby="success-heading">
-              Søknads-ID: <strong>{submissionState.applicationId}</strong>
-            </p>
-            <p className="text-green-600 text-sm mt-2">
-              Du vil motta en bekreftelse på e-post snart.
-            </p>
-          </div>
+          <PktAlert
+            title="Søknad sendt inn!"
+            skin="success"
+            compact
+            ariaLive="polite"
+          >
+            <div>
+              <p>Søknads-ID: <strong>{submissionState.applicationId}</strong></p>
+              <p className="text-sm mt-2">Du vil motta en bekreftelse på e-post snart.</p>
+            </div>
+          </PktAlert>
         );
 
       case 'error':
         return (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert" aria-live="assertive" aria-atomic="true">
-            <h3 className="text-red-800 font-semibold mb-2" id="error-heading">
-              ❌ Innsending feilet
-            </h3>
-            <pre className="text-red-700 text-sm whitespace-pre-wrap" aria-describedby="error-heading">
-              {submissionState.error}
-            </pre>
-            <PktButton
-              onClick={() => setSubmissionState({ status: 'idle' })}
-              skin="primary"
-              color="red"
-              size="medium"
-              className="mt-4"
-            >
-              Prøv igjen
-            </PktButton>
-          </div>
+          <PktAlert
+            title="Innsending feilet"
+            skin="error"
+            compact
+            ariaLive="assertive"
+          >
+            <div>
+              <pre className="text-sm whitespace-pre-wrap mb-4">
+                {submissionState.error}
+              </pre>
+              <PktButton
+                onClick={() => setSubmissionState({ status: 'idle' })}
+                skin="primary"
+                color="red"
+                size="medium"
+              >
+                Prøv igjen
+              </PktButton>
+            </div>
+          </PktAlert>
         );
     }
   };
@@ -876,11 +888,14 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
 
             {/* User Info Display (for authenticated users) */}
             {submissionContext.user ? (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
-                  💡 Dato og signatur settes automatisk basert på innlogget bruker ({submissionContext.user.name})
-                </p>
-              </div>
+              <PktAlert
+                title="Automatisk signatur"
+                skin="info"
+                compact
+                ariaLive="polite"
+              >
+                <span>Dato og signatur settes automatisk basert på innlogget bruker ({submissionContext.user.name})</span>
+              </PktAlert>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <PktTextinput
@@ -1097,29 +1112,40 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
           className={activeTab === 'processing' ? 'space-y-8' : 'hidden'}
         >
           {/* Helper text for internal users */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              <strong>Obs:</strong> Denne fanen er kun for intern bruk av Oslobygg KF. Her skal rådgiver, prosjektleder, arbeidsgruppe og prosjekteier registrere sine vurderinger.
-            </p>
-          </div>
+          <PktAlert
+            title="Intern saksbehandling"
+            skin="info"
+            compact
+            ariaLive="polite"
+          >
+            <span>Denne fanen er kun for intern bruk av Oslobygg KF. Her skal rådgiver, prosjektleder, arbeidsgruppe og prosjekteier registrere sine vurderinger.</span>
+          </PktAlert>
 
           {/* Status Indicator */}
           {formData.processing.status && (
-            <div className="bg-gray-50 border-l-4 border-pri rounded-lg p-4">
-              <p className="text-sm font-medium text-ink">
-                📋 Status: <span className="text-pri font-semibold">
-                  {formData.processing.status === 'submitted' && 'Innsendt'}
-                  {formData.processing.status === 'awaiting_boi_review' && 'Venter på BOI-vurdering'}
-                  {formData.processing.status === 'awaiting_ent_revision' && 'Venter på oppdatering fra ENT'}
-                  {formData.processing.status === 'awaiting_pl_review' && 'Venter på prosjektleder-vurdering'}
-                  {formData.processing.status === 'awaiting_group_review' && 'Venter på arbeidsgruppens vurdering'}
-                  {formData.processing.status === 'awaiting_owner_decision' && 'Venter på prosjekteiers beslutning'}
-                  {formData.processing.status === 'approved' && 'Godkjent ✅'}
-                  {formData.processing.status === 'partially_approved' && 'Delvis godkjent ⚠️'}
-                  {formData.processing.status === 'rejected' && 'Avslått ❌'}
-                </span>
-              </p>
-            </div>
+            <PktAlert
+              title="Status"
+              skin={
+                formData.processing.status === 'approved' ? 'success' :
+                formData.processing.status === 'partially_approved' ? 'warning' :
+                formData.processing.status === 'rejected' ? 'error' :
+                'info'
+              }
+              compact
+              ariaLive="polite"
+            >
+              <span>
+                {formData.processing.status === 'submitted' && 'Innsendt'}
+                {formData.processing.status === 'awaiting_boi_review' && 'Venter på BOI-vurdering'}
+                {formData.processing.status === 'awaiting_ent_revision' && 'Venter på oppdatering fra ENT'}
+                {formData.processing.status === 'awaiting_pl_review' && 'Venter på prosjektleder-vurdering'}
+                {formData.processing.status === 'awaiting_group_review' && 'Venter på arbeidsgruppens vurdering'}
+                {formData.processing.status === 'awaiting_owner_decision' && 'Venter på prosjekteiers beslutning'}
+                {formData.processing.status === 'approved' && 'Godkjent ✅'}
+                {formData.processing.status === 'partially_approved' && 'Delvis godkjent ⚠️'}
+                {formData.processing.status === 'rejected' && 'Avslått ❌'}
+              </span>
+            </PktAlert>
           )}
 
         {/* Section 5 - BOI Advisor Review */}
@@ -1412,15 +1438,24 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
 
             {/* Show final decision summary */}
             {formData.processing.ownerAgreesWithGroup === 'yes' && formData.processing.groupRecommendation && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm text-green-800">
-                  ✅ Endelig beslutning: <strong>
+              <PktAlert
+                title="Endelig beslutning"
+                skin={
+                  formData.processing.groupRecommendation === 'approved' ? 'success' :
+                  formData.processing.groupRecommendation === 'partially_approved' ? 'warning' :
+                  'error'
+                }
+                compact
+                ariaLive="polite"
+              >
+                <span>
+                  <strong>
                     {formData.processing.groupRecommendation === 'approved' && 'Godkjent'}
                     {formData.processing.groupRecommendation === 'partially_approved' && 'Delvis godkjent'}
                     {formData.processing.groupRecommendation === 'rejected' && 'Avslått'}
                   </strong> (i samsvar med arbeidsgruppens innstilling)
-                </p>
-              </div>
+                </span>
+              </PktAlert>
             )}
           </div>
         </fieldset>
