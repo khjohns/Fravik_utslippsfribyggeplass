@@ -473,9 +473,42 @@ const ProcessingSection: React.FC<{ data: FormData }> = ({ data }) => {
       {data.processing.groupAssessment && (
         <View style={{ marginTop: 15 }}>
           <Text style={styles.textBlockTitle}>Arbeidsgruppens vurdering:</Text>
+
+          {/* Machine-specific decisions (if available) */}
+          {data.applicationType === 'machine' && data.machines.length > 0 && data.processing.machineDecisions && Object.keys(data.processing.machineDecisions).length > 0 && (
+            <View style={{ marginBottom: 10 }}>
+              <Text style={{ fontSize: 9, fontWeight: 'bold', marginBottom: 6 }}>Vurdering per maskin:</Text>
+              {data.machines.map((machine, index) => {
+                const decision = data.processing.machineDecisions?.[machine.id];
+                if (!decision || !decision.decision) return null;
+
+                return (
+                  <View key={machine.id} style={{ marginBottom: 8, paddingLeft: 10 }}>
+                    <Text style={{ fontSize: 9, fontWeight: 'bold', marginBottom: 2 }}>
+                      Maskin {index + 1}: {getMachineTypeLabel(machine)}
+                    </Text>
+                    <View style={styles.table}>
+                      <TableRow
+                        label="Beslutning"
+                        value={decision.decision === 'approved' ? 'Godkjent ✅' : 'Avslått ❌'}
+                      />
+                      {decision.comment && (
+                        <TableRow
+                          label="Vilkår/Kommentar"
+                          value={decision.comment}
+                          striped
+                        />
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
           <View style={styles.table}>
             <TableRow
-              label="Innstilling"
+              label={data.applicationType === 'machine' && data.machines.length > 0 ? "Samlet innstilling" : "Innstilling"}
               value={getRecommendationLabel(data.processing.groupRecommendation)}
             />
             {data.processing.groupReviewedAt && (

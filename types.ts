@@ -94,6 +94,14 @@ export interface FormData {
     groupReviewedAt?: string; // ISO 8601 timestamp when group completed assessment
     groupReviewedBy?: string; // Names of group members
 
+    // Machine-specific decisions (only for machine applications)
+    machineDecisions?: {
+      [machineId: string]: {
+        decision: 'approved' | 'rejected' | '';
+        comment: string; // Optional conditions/comments per machine
+      };
+    };
+
     // Project Owner Decision (Section 8)
     ownerAgreesWithGroup: 'yes' | 'no' | '';
     ownerJustification: string; // Only required if 'no' above
