@@ -5,12 +5,11 @@ import { PktButton, PktTextinput, PktTextarea, PktSelect, PktCheckbox, PktRadioB
 import type { FormData, Machine, SubmissionMeta } from '../types';
 import { FileUploadField } from './form/Fields';
 import MachineGallery from './MachineGallery';
-import {
-  submitApplicationWithRetry,
-  validateBeforeSubmit,
-  APIError
-} from '../services/api.service';
 import { useFormPersistence, useUnsavedChangesWarning } from '../hooks';
+import { useFormState } from '../hooks/useFormState';
+import { useProcessingState } from '../hooks/useProcessingState';
+import { useMachineDecisions } from '../hooks/useMachineDecisions';
+import { useFormSubmission } from '../hooks/useFormSubmission';
 import { logger } from '../utils/logger';
 import { generateFravikPdf, generateFravikPdfBlob } from '../utils/FravikPdfDocument';
 import PDFPreviewModal from './PDFPreviewModal';
@@ -27,16 +26,6 @@ interface MainFormProps {
 }
 
 type TabType = 'application' | 'processing';
-
-/**
- * Submission states
- */
-type SubmissionState =
-  | { status: 'idle' }
-  | { status: 'validating' }
-  | { status: 'submitting'; progress: number }
-  | { status: 'success'; applicationId: number }
-  | { status: 'error'; error: string };
 
 const exampleMachine: Machine = {
   id: uuidv4(),
@@ -235,10 +224,13 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
     documentation?: File[];
   }>({});
 
-  // Submission state
-  const [submissionState, setSubmissionState] = useState<SubmissionState>({
-    status: 'idle',
-  });
+  // Custom hooks for state management
+  const { handleChange, handleInfraCheckboxChange, handleInfraTextChange } = useFormState(setFormData);
+  const { handleProcessingChange, handleMachineDecisionChange } = useProcessingState(setFormData);
+  const { submissionState, handleSubmit, setSubmissionState } = useFormSubmission(formData, files, submissionContext, clearSaved);
+
+  // Auto-calculate groupRecommendation based on machine decisions
+  useMachineDecisions(formData, setFormData);
 
   // Stepper state
   const [activeStep, setActiveStep] = useState<string>('1');
@@ -319,117 +311,6 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
         }
       });
     };
-  }, []);
-
-  // Automatically calculate groupRecommendation based on individual machine decisions
-  useEffect(() => {
-    // Only calculate for machine applications with machines
-    if (formData.applicationType !== 'machine' || formData.machines.length === 0) {
-      return;
-    }
-
-    const decisions = formData.processing.machineDecisions;
-    if (!decisions) {
-      return;
-    }
-
-    // Get all machine decisions
-    const machineDecisions = formData.machines.map(m => decisions[m.id]?.decision).filter(Boolean);
-
-    // If no decisions have been made yet, don't update
-    if (machineDecisions.length === 0) {
-      return;
-    }
-
-    // Calculate overall recommendation
-    let newRecommendation: 'approved' | 'partially_approved' | 'rejected' | '' = '';
-
-    const approvedCount = machineDecisions.filter(d => d === 'approved').length;
-    const rejectedCount = machineDecisions.filter(d => d === 'rejected').length;
-    const totalDecisions = machineDecisions.length;
-
-    if (totalDecisions === formData.machines.length) {
-      // All machines have been decided
-      if (approvedCount === formData.machines.length) {
-        newRecommendation = 'approved';
-      } else if (rejectedCount === formData.machines.length) {
-        newRecommendation = 'rejected';
-      } else {
-        newRecommendation = 'partially_approved';
-      }
-
-      // Update groupRecommendation if it's different
-      if (newRecommendation !== formData.processing.groupRecommendation) {
-        setFormData(prev => ({
-          ...prev,
-          processing: {
-            ...prev.processing,
-            groupRecommendation: newRecommendation
-          }
-        }));
-      }
-    }
-  }, [formData.applicationType, formData.machines, formData.processing.machineDecisions, formData.processing.groupRecommendation]);
-
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string; value: string }}) => {
-    const { name, value } = e.target;
-
-    // Check if it's a checkbox based on the event object, not type string
-    if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
-        const { checked } = e.target;
-        setFormData(prev => ({ ...prev, [name]: checked }));
-    } else {
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  }, []);
-  
-  const handleInfraCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      infrastructure: {
-        ...prev.infrastructure,
-        [name]: checked
-      }
-    }));
-  }, []);
-
-  const handleInfraTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      infrastructure: {
-        ...prev.infrastructure,
-        [name]: value
-      }
-    }));
-  }, []);
-
-  const handleProcessingChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string }}) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      processing: {
-        ...prev.processing,
-        [name]: value
-      }
-    }));
-  }, []);
-
-  const handleMachineDecisionChange = useCallback((machineId: string, field: 'decision' | 'comment', value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      processing: {
-        ...prev.processing,
-        machineDecisions: {
-          ...prev.processing.machineDecisions,
-          [machineId]: {
-            ...prev.processing.machineDecisions?.[machineId],
-            [field]: value
-          }
-        }
-      }
-    }));
   }, []);
 
   /**
@@ -535,84 +416,6 @@ const MainForm: React.FC<MainFormProps> = ({ mode, submissionContext, initialApp
         }));
     }
   }, []);
-  
-  /**
-   * Handle form submission
-   */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // 1. Validation
-    setSubmissionState({ status: 'validating' });
-
-    const validation = validateBeforeSubmit(formData, files);
-
-    if (!validation.valid) {
-      setSubmissionState({
-        status: 'error',
-        error: validation.errors.join('\n'),
-      });
-      return;
-    }
-
-    // 2. Submit with retry logic
-    setSubmissionState({ status: 'submitting', progress: 0 });
-
-    try {
-      // Simulate progress updates (optional - for UX)
-      const progressInterval = setInterval(() => {
-        setSubmissionState(prev =>
-          prev.status === 'submitting'
-            ? { ...prev, progress: Math.min(prev.progress + 10, 90) }
-            : prev
-        );
-      }, 500);
-
-      // Merge formData with submissionContext
-      const submissionData = {
-        ...formData,
-        submissionMeta: submissionContext
-      };
-
-      // Submit application
-      const response = await submitApplicationWithRetry(
-        submissionData as any, // Type assertion needed due to added meta field
-        files,
-        3, // Max 3 retries
-        1000 // 1 second delay
-      );
-
-      clearInterval(progressInterval);
-
-      // Success!
-      setSubmissionState({
-        status: 'success',
-        applicationId: response.id,
-      });
-
-      logger.log('✅ Application submitted:', response);
-
-      // Clear saved data from localStorage
-      clearSaved();
-
-      // Optional: Reset form
-      // setFormData(initialFormData);
-      // setFiles({});
-
-    } catch (error) {
-      const apiError = error as APIError;
-
-      logger.error('❌ Submission failed:', apiError);
-
-      setSubmissionState({
-        status: 'error',
-        error: apiError.message + (apiError.details ? `\n\n${apiError.details}` : ''),
-      });
-
-      // Log to analytics/monitoring (optional)
-      // trackError('submission_failed', apiError);
-    }
-  };
 
   /**
    * Render submission state UI
