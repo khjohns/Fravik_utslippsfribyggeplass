@@ -305,6 +305,12 @@ const ProjectInfoSection: React.FC<{ data: FormData }> = ({ data }) => (
         <TextBlock title="Begrunnelse for hastebehandling:" content={data.urgencyReason} />
       )}
     </View>
+
+    <View style={{ marginTop: 20 }}>
+      <Text style={styles.mainTitle}>Konsekvenser og avbøtende tiltak</Text>
+      <TextBlock title="Avbøtende tiltak:" content={data.mitigatingMeasures} />
+      <TextBlock title="Konsekvenser ved avslag:" content={data.consequencesOfRejection} />
+    </View>
   </View>
 );
 
@@ -354,26 +360,6 @@ const InfrastructureSection: React.FC<{ infrastructure: FormData['infrastructure
   </View>
 );
 
-const ConsequencesAndAdvisorSection: React.FC<{ data: FormData }> = ({ data }) => (
-  <View>
-    <Text style={styles.mainTitle}>Konsekvenser og avbøtende tiltak</Text>
-    <TextBlock title="Avbøtende tiltak:" content={data.mitigatingMeasures} />
-    <TextBlock title="Konsekvenser ved avslag:" content={data.consequencesOfRejection} />
-
-    {data.advisorAssessment && (
-      <View style={{ marginTop: 20 }}>
-        <Text style={styles.mainTitle}>Rådgivervurdering</Text>
-        <TextBlock title="Vurdering fra rådgiver:" content={data.advisorAssessment} />
-      </View>
-    )}
-
-    <View style={styles.metadataFooter}>
-      <Text style={styles.metadataText}>
-        Generert av: {data.submitterName || 'Ukjent'} | System: Fraviksøknad - Utslippsfri byggeplass | Oslo Kommune
-      </Text>
-    </View>
-  </View>
-);
 
 const ProcessingSection: React.FC<{ data: FormData }> = ({ data }) => {
   const getRecommendationLabel = (rec: string) => {
@@ -564,10 +550,9 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
   const hasProcessingData = data.processing.boiAssessment || data.processing.plAssessment || data.processing.groupAssessment || data.processing.ownerAgreesWithGroup;
 
   // BEREGN ANTALL SIDER MANUELT
-  // Side 1: Alltid Prosjektinfo
+  // Side 1: Prosjektinfo + Konsekvenser og avbøtende tiltak
   // Side 2..N: Innhold (Maskiner eller Infrastruktur)
-  // Side N+1: Konsekvenser og Rådgiver (Konklusjon)
-  // Side N+2: Saksbehandling (hvis data finnes)
+  // Side N+1: Saksbehandling (hvis data finnes)
 
   let contentPages = 0;
   if (hasMachines) {
@@ -578,8 +563,8 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
     contentPages = 1;
   }
 
-  // Total: Startside + Innholdssider + Sluttside + (Processing hvis den finnes)
-  const totalPages = 1 + contentPages + 1 + (hasProcessingData ? 1 : 0);
+  // Total: Startside + Innholdssider + (Processing hvis den finnes)
+  const totalPages = 1 + contentPages + (hasProcessingData ? 1 : 0);
 
   return (
     <Document
@@ -615,13 +600,6 @@ const FravikPdfDocument: React.FC<{ data: FormData }> = ({ data }) => {
           <Footer pageNumber={2} totalPages={totalPages} />
         </Page>
       )}
-
-      {/* SIDE: KONSEKVENSER OG RÅDGIVER */}
-      <Page size="A4" style={styles.page}>
-        <Header />
-        <ConsequencesAndAdvisorSection data={data} />
-        <Footer pageNumber={hasProcessingData ? totalPages - 1 : totalPages} totalPages={totalPages} />
-      </Page>
 
       {/* SISTE SIDE: SAKSBEHANDLING (hvis data finnes) */}
       {hasProcessingData && (
